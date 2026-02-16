@@ -1,0 +1,73 @@
+=============================
+Postman Testing
+=============================
+-----------------------------
+Admin Module :-
+-----------------------------
+
+Admin Registration 
+
+http://localhost:3030/admin/registerAdmin
+
+Body JSON:
+{
+    "fname": "Rohan",
+    "lname": "Gawade",
+    "email": "rohan@gmail.com",
+    "password": "password1234",
+    "address": "123 Main St, Anytown, USA",
+    "dob": "14-06-2008",
+    "phone": "123-456-7890",
+    "adharcard": "123456789013"
+}
+
+---------------------------------------------------
+
+Get Admin By Email
+
+http://localhost:3030/admin/getAdminByEmail
+
+Header
+key = email
+value = rohan@gmail.com
+
+---------------------------------------------------
+
+Register Customer By Admin
+
+http://localhost:3030/admin/registerCustomer
+
+Body JSON:
+{
+    "fname": "Rohan",
+    "lname": "Gawade",
+    "email": "rohan@gmail.com",
+    "password": "password1234",
+    "address": "123 Main St, Anytown, USA",
+    "dob": "14-06-2008",
+    "phone": "123-456-7890",
+    "adharcard": "123456789013"
+}
+
+----------------------------------------------------
+
+Get Customer By Adharcard Number
+
+http://localhost:3030/admin/getCustomerByAdharcard
+
+Header
+key = AdharcardNumber
+value = 123456789013
+
+----------------------------------------------------
+
+Get Customer By Email
+
+http://localhost:3030/admin/getCustomerByEmail
+
+Header
+key = email
+value = rohan@gmail.com
+
+----------------------------------------------------
+
