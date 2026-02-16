@@ -5,17 +5,17 @@ import java.time.Instant;
 
 import com.obs.Online_Banking_System.enumDto.AccountType;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Data
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class AccountDto {
-
+@Builder
+public class AccountResponseDto {
+    
     private Long accountNumber;
 
     private AccountType accountType;

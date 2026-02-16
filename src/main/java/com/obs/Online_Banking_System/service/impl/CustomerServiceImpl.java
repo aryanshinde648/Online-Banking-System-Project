@@ -1,10 +1,13 @@
 package com.obs.Online_Banking_System.service.impl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.entity.Customer;
+import com.obs.Online_Banking_System.exception.ResourceNotFoundException;
 import com.obs.Online_Banking_System.mapper.CustomerConversion;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.CustomerService;
@@ -26,11 +29,8 @@ public class CustomerServiceImpl implements CustomerService {
         
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
 
-        if (customerRepository.findByEmail(newCust.getEmail()) != null) {
-
-            log.warn("Customer with email {} already exists", newCust.getEmail());
-
-            throw new RuntimeException("Customer with email " + newCust.getEmail() + " already exists");
+        if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
+            throw new RuntimeException("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
         }
 
         customerRepository.save(newCust);
@@ -48,10 +48,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto getCustomerByEmail(String email) {
-        Customer customer = customerRepository.findByEmail(email);
-        if (customer == null) {
+
+        if (customerRepository.findByEmail(email).isEmpty()) {
             throw new RuntimeException("Customer not found with email: " + email);
         }
+
+        Customer customer = customerRepository.getByEmail(email);
+
         return customerConversion.toCustomerDto(customer);
     }
 
@@ -71,11 +74,12 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto updateCustomerByEmail(String email, CustomerDto customerDto) {
-        Customer existingCustomer = customerRepository.findByEmail(email);
 
-        if (existingCustomer == null) {
+        if (customerRepository.findByEmail(email).isEmpty()) {
             throw new RuntimeException("Customer not found with email: " + email);
         }
+
+        Customer existingCustomer = customerRepository.getByEmail(email);
 
         existingCustomer.setFname(customerDto.getFname());
         existingCustomer.setLname(customerDto.getLname());
@@ -115,12 +119,12 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto getCustomerByAdharcard(Long adharcard) {
-       
-        Customer customer = customerRepository.findByAdharcard(adharcard);
 
-        if (customer == null) {
+        if (customerRepository.findByAdharcard(adharcard).isEmpty()) {
             throw new RuntimeException("Customer not found with adharcard: " + adharcard);
         }
+
+        Customer customer = customerRepository.getByAdharcard(adharcard);
         
         return customerConversion.toCustomerDto(customer);
     }
