@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
+import com.obs.Online_Banking_System.dto.AccountResponseDto;
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.entity.Account;
 import com.obs.Online_Banking_System.entity.Customer;
@@ -47,10 +48,12 @@ public class AccountServiceImpl implements AccountService{
     @Override
     public AccountDto createAccount(AccountCreateDto accountCreateDto) {
 
-        Customer customer = customerRepository.findByEmail(accountCreateDto.getEmail());
-        if (customer == null) {
+        
+        if (customerRepository.findByEmail(accountCreateDto.getEmail()).isEmpty()) {
             throw new RuntimeException("Customer not found with email "+accountCreateDto.getEmail());
         }
+
+        Customer customer = customerRepository.getByEmail(accountCreateDto.getEmail());
 
         BigDecimal initialBalance = accountCreateDto.getInitialDeposit() == null
                 ? BigDecimal.ZERO
@@ -89,15 +92,18 @@ public class AccountServiceImpl implements AccountService{
 
     @Override
     public AccountDto getAccountByAccountNumber(Long accountNumber) {
-        Account account = accountRepository.findByAccountNumber(accountNumber);
-        if (account == null) {
+        
+        if (accountRepository.findByAccountNumber(accountNumber).isEmpty()) {
             throw new RuntimeException("Account not found with account number: " + accountNumber);
         }
+
+        Account account = accountRepository.getByAccountNumber(accountNumber);
+
         return accountConversion.toAccountDto(account);
     }
 
     @Override
-    public AccountDto getAccountByUserEmail(String email) {
+    public AccountDto getAccountByCustomerEmail(String email) {
 
         /*   Logic
             1. Find the customer by email
@@ -105,17 +111,35 @@ public class AccountServiceImpl implements AccountService{
             3. Find the account by adharcard number
         */
 
-        Customer customer = customerRepository.findByEmail(email);
-        if (customer == null) {
+        if (customerRepository.findByEmail(email).isEmpty()) {
             throw new RuntimeException("Customer not found with email: " + email);
         }
 
-        Account account = accountRepository.findByAdharcard(customer.getAdharcard());
-        if (account == null) {
+        Customer customer = customerRepository.getByEmail(email);
+        
+        if (accountRepository.findByAdharcard(customer.getAdharcard()).isEmpty()) {
             throw new RuntimeException("Account not found for customer with email: " + email);
         }
+        
+        Account account = accountRepository.getByAdharcard(customer.getAdharcard());
 
         return accountConversion.toAccountDto(account);
+    }
+
+    @Override
+    public AccountResponseDto getmyAccount(String email) {
+        AccountDto acc = getAccountByCustomerEmail(email);
+
+        AccountResponseDto responseDto = AccountResponseDto.builder()
+                    .accountNumber(acc.getAccountNumber())
+                    .accountType(acc.getAccountType())
+                    .adharcard(acc.getAdharcard())
+                    .balance(acc.getBalance())
+                    .branch(acc.getBranch())
+                    .ifsc(acc.getIfsc())
+                    .build();
+                    
+        return responseDto;
     }
     
 }

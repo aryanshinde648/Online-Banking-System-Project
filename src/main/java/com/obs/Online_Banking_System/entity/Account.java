@@ -43,6 +43,10 @@ public class Account {
     @Column(name = "createdAt" , nullable = false)
     private Instant createdAt;
 
-    
+    @Column(name = "branch")
+    private String branch = "All India Branch";
+
+    @Column(name = "ifsc")
+    private String ifsc = "ABIN0112233";
     
 }
