@@ -11,6 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CustomerDto {
 
+    private Long id;
+
     private String fname;
     
     private String lname;

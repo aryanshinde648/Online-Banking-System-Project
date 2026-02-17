@@ -11,6 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AdminDto {
 
+    private Long id;
+
     private String fname;
     
     private String lname;

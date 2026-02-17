@@ -1,5 +1,8 @@
 package com.obs.Online_Banking_System.restcontroller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
-import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.AccountResponseDto;
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.service.AccountService;
@@ -28,14 +30,38 @@ public class CustomerController {
     private CustomerService customerService;
 
     @GetMapping("/registerCustomer")
-    public ResponseEntity<CustomerDto> registerCustomer(@RequestBody CustomerDto customerDto) {
-        CustomerDto cust = customerService.registerCustomer(customerDto);
-        return ResponseEntity.ok(cust);
+    public ResponseEntity<Map<String, Object>> registerCustomer(@RequestBody CustomerDto customerDto) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            CustomerDto cust = customerService.registerCustomer(customerDto);
+            response.put("success",true);
+            response.put("message","Customer registered successfully");
+            response.put("Customer",cust);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+        
     }
 
     @PostMapping("/createAccount")
-    public ResponseEntity<AccountDto> createAccount(@RequestBody AccountCreateDto account) {
-        return ResponseEntity.ok(accountService.createAccount(account));
+    public ResponseEntity<Map<String,Object>> createAccount(@RequestBody AccountCreateDto account) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            response.put("success",true);
+            response.put("message", "Account Created successfully");
+            response.put("Account", accountService.createAccount(account));
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @GetMapping("/getmyAccount")
