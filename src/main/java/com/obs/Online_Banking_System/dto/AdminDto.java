@@ -11,11 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AdminDto {
 
-    private Long id;
+    private Long adminId;
 
     private String fname;
     
     private String lname;
+
     
     private String email;
     

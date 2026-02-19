@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Customer</title>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Customer Login</h2>
+
+      <div th:if="${success}" class="msg success" th:text="${success}"></div>
+      <div th:if="${error}" class="msg error" th:text="${error}"></div>
+      
+    </div>
+  </body>
+</html>

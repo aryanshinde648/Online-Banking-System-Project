@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.AccountResponseDto;
+import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.entity.Account;
 import com.obs.Online_Banking_System.entity.Customer;
 import com.obs.Online_Banking_System.mapper.AccountConversion;
+import com.obs.Online_Banking_System.mapper.CustomerConversion;
 import com.obs.Online_Banking_System.repository.AccountRepository;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.AccountService;
@@ -36,6 +38,9 @@ public class AccountServiceImpl implements AccountService{
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private CustomerConversion customerConversion;
 
     private static long ACCOUNT_START = 1000000000L;
 
@@ -65,6 +70,7 @@ public class AccountServiceImpl implements AccountService{
         account.setAdharcard(customer.getAdharcard());
         account.setCreatedAt(Instant.now());
         account.setAccountType(accountCreateDto.getAccountType());
+        account.setCustomer(customer);
 
         accountRepository.save(account);
         AccountDto accountDto = accountConversion.toAccountDto(account);
@@ -135,6 +141,7 @@ public class AccountServiceImpl implements AccountService{
                     .balance(acc.getBalance())
                     .branch(acc.getBranch())
                     .ifsc(acc.getIfsc())
+                    .customerDto(customerConversion.toCustomerDto(acc.getCustomer()))
                     .build();
                     
         return responseDto;

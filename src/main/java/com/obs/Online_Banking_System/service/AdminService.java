@@ -8,6 +8,8 @@ public interface AdminService {
     
     public ResponseEntity<String> registerAdmin(AdminDto admin);
 
+    public AdminDto register(AdminDto admin);
+
     public ResponseEntity<AdminDto> getAdminById(Long id);
 
     public ResponseEntity<String> updateAdmin(Long id, AdminDto admin);
@@ -17,5 +19,7 @@ public interface AdminService {
     public ResponseEntity<String> changePassword(Long id, String oldPassword, String newPassword);
 
     public ResponseEntity<AdminDto> getAdminByEmail(String email);
+
+    public AdminDto authenticateAdmin(String email, String pass);
 
 }

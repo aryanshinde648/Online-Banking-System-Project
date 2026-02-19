@@ -3,8 +3,10 @@ package com.obs.Online_Banking_System.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.obs.Online_Banking_System.entity.Customer;
 import com.obs.Online_Banking_System.enumDto.AccountType;
 
+import jakarta.persistence.JoinColumn;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,8 +17,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountDto {
-    
-    private Long id;
+
+    private Long accountId;
 
     private Long accountNumber;
 
@@ -31,4 +33,6 @@ public class AccountDto {
     private String branch;
 
     private String ifsc;
+
+    private Customer customer;
 }
