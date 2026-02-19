@@ -1,17 +1,80 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Login Customer</title>
-  </head>
-  <body>
-    <div class="card">
-      <h2>Customer Login</h2>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="\css\main.css">
+</head>
+<body>
+  <!-- Header bar -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand brand" href="#">Online Banking System</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navCollapse" aria-controls="navCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-      <div th:if="${success}" class="msg success" th:text="${success}"></div>
-      <div th:if="${error}" class="msg error" th:text="${error}"></div>
-      
+        <div class="collapse navbar-collapse justify-content-end" id="navCollapse">
+            <div class="navbar-nav">
+                <a class="btn btn-outline-light mr-2" th:href="@{/login-customer}">Customer Login</a>
+                <a class="btn btn-outline-info" th:href="@{/login-admin}">Admin Login</a>
+            </div>
+        </div>
     </div>
-  </body>
+</nav>
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title mb-4">Customer Registration</h4>
+
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success">
+          <span th:text="${success}"></span>
+          <br>
+          Redirecting in <strong id="countdown">10</strong> seconds...
+        </div>
+
+        <form th:action="@{/auth/login-customer}" method="post">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" class="form-control" id="email" placeholder="you@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">Login</button>
+                <p>Don't have an account? <a th:href="@{/customer/register-customer}" class="btn btn-link">Register here</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:if="${success}" th:inline="javascript">
+  let remaining = /*[[${redirectDelayMs}]]*/ 10000 / 1000;
+  const redirectUrl = /*[[${redirectUrl}]]*/ '/dashboard';
+  const countdownEl = document.getElementById('countdown');
+
+  countdownEl.textContent = remaining;
+
+  const timer = setInterval(function () {
+    remaining--;
+    countdownEl.textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(timer);
+      window.location.href = redirectUrl;
+    }
+  }, 1000);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

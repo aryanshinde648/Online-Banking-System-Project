@@ -5,21 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Register - Customer</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <style>
-        .card { max-width: 700px; margin: 40px auto; }
-    </style>
+    <link rel="stylesheet" href="\css\main.css">
 </head>
 <body>
-<div class="card">
+
+<!-- Header bar -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand brand" href="#">Online Banking System</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navCollapse" aria-controls="navCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navCollapse">
+            <div class="navbar-nav">
+                <a class="btn btn-outline-light mr-2" th:href="@{/login-customer}">Customer Login</a>
+                <a class="btn btn-outline-info" th:href="@{/login-admin}">Admin Login</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="card shadow-sm">
     <div class="card-body">
         <h4 class="card-title mb-4">Customer Registration</h4>
 
-        <!-- show controller-provided errors and success message -->
-        <div th:if="${#vars['email-error']}" class="alert alert-danger" th:text="${#vars['email-error']}"></div>
-        <div th:if="${#vars['adhar-error']}" class="alert alert-danger" th:text="${#vars['adhar-error']}"></div>
-        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
-        <form th:action="@{/auth/register-customer}" th:object="${customer}" method="post">
+        <form th:action="@{/auth/register-customer}" th:object="${customer}" method="post" id="registerForm">
             <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
             <div class="form-row">
@@ -38,10 +52,22 @@
                 <input type="email" th:field="*{email}" class="form-control" id="email" placeholder="you@example.com" required>
             </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" th:field="*{password}" class="form-control" id="password" placeholder="Password" required>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="password">Password</label>
+                    <input type="password" th:field="*{password}" class="form-control" id="password" placeholder="Password" minlength="6" required>
+                    <div class="progress mt-2">
+                        <div id="pwStrength" class="progress-bar pw-strength" role="progressbar" style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm password" required>
+                    <small id="pwMatch" class="form-text text-muted"></small>
+                </div>
             </div>
+
+            <!-- Account type and initial deposit removed as requested -->
 
             <div class="form-group">
                 <label for="phone">Phone</label>
@@ -60,13 +86,13 @@
                 </div>
                 <div class="form-group col-md-6">
                     <label for="adharcard">Aadhar Card</label>
-                    <input type="number" th:field="*{adharcard}" class="form-control" id="adharcard" placeholder="Aadhar number">
+                    <input type="text" th:field="*{adharcard}" class="form-control" id="adharcard" placeholder="Aadhar number">
                 </div>
             </div>
 
-            <div class="form-group mt-4">
-                <button type="submit" class="btn btn-primary">Register</button>
-                <a th:href="@{/login-customer}" class="btn btn-link">Already have an account?</a>
+            <div class="form-group mt-3">
+                <button type="submit" id="submitBtn" class="btn btn-primary" disabled>Register</button>
+                <a th:href="@{/login-customer}" class="btn btn-link">Already have an account? Sign in</a>
             </div>
         </form>
     </div>
@@ -74,5 +100,69 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function(){
+        const password = document.getElementById('password');
+        const confirm = document.getElementById('confirmPassword');
+        const pwStrength = document.getElementById('pwStrength');
+        const pwMatch = document.getElementById('pwMatch');
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('registerForm');
+
+        function strengthScore(pw){
+            let score = 0;
+            if(!pw) return 0;
+            if(pw.length >= 6) score += 1;
+            if(/[A-Z]/.test(pw)) score += 1;
+            if(/[0-9]/.test(pw)) score += 1;
+            if(/[^A-Za-z0-9]/.test(pw)) score += 1;
+            return score;
+        }
+
+        function updateStrength(){
+            const s = strengthScore(password.value);
+            const percent = (s / 4) * 100;
+            pwStrength.style.width = percent + '%';
+            pwStrength.className = 'progress-bar pw-strength ' + (s <=1 ? 'bg-danger' : s===2 ? 'bg-warning' : 'bg-success');
+        }
+
+        function updateMatch(){
+            if(!confirm.value && !password.value){
+                pwMatch.textContent = '';
+                return;
+            }
+            if(password.value === confirm.value){
+                pwMatch.textContent = 'Passwords match';
+                pwMatch.className = 'form-text text-success';
+                return true;
+            } else {
+                pwMatch.textContent = 'Passwords do not match';
+                pwMatch.className = 'form-text text-danger';
+                return false;
+            }
+        }
+
+        function updateFormState(){
+            const match = updateMatch();
+            updateStrength();
+            // basic required fields check
+            const requiredFilled = document.getElementById('fname').value.trim() && document.getElementById('lname').value.trim() && document.getElementById('email').value.trim() && password.value.trim() && confirm.value.trim();
+            submitBtn.disabled = !(requiredFilled && match);
+        }
+
+        password.addEventListener('input', updateFormState);
+        confirm.addEventListener('input', updateFormState);
+        document.getElementById('fname').addEventListener('input', updateFormState);
+        document.getElementById('lname').addEventListener('input', updateFormState);
+        document.getElementById('email').addEventListener('input', updateFormState);
+
+        // Prevent accidental submission when client-side validation fails
+        form.addEventListener('submit', function(e){
+            if(submitBtn.disabled){
+                e.preventDefault();
+            }
+        });
+    })();
+</script>
 </body>
 </html>

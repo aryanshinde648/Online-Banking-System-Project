@@ -26,4 +26,6 @@ public interface CustomerService {
 
     CustomerDto athenticateCustomer(String email, String pass);
 
+    Map<String, Object> athenticateCustomerMap(String email, String pass);
+
 }

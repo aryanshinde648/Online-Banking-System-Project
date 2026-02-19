@@ -12,7 +12,6 @@ import com.obs.Online_Banking_System.entity.Customer;
 
 import jakarta.persistence.LockModeType;
 
-import java.util.List;
 
 
 @Repository

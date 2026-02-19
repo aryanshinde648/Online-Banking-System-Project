@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.AccountResponseDto;
-import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.entity.Account;
 import com.obs.Online_Banking_System.entity.Customer;
 import com.obs.Online_Banking_System.mapper.AccountConversion;

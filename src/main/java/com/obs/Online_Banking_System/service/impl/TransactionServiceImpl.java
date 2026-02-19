@@ -20,7 +20,10 @@ import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.repository.TransactionRepository;
 import com.obs.Online_Banking_System.service.TransactionService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class TransactionServiceImpl implements TransactionService {
 
         @Autowired
@@ -33,6 +36,7 @@ public class TransactionServiceImpl implements TransactionService {
         private AccountRepository accountRepository;
 
         @Override
+        @Transactional
         public String deposit(TransactionRequestDto request, String email) {
 
                 Customer cust = customerRepository.findByEmail(email)
@@ -62,6 +66,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         @Override
+        @Transactional
         public String withdraw(TransactionRequestDto request, String email) {
 
                 Customer cust = customerRepository.findByEmail(email)
@@ -153,6 +158,30 @@ public class TransactionServiceImpl implements TransactionService {
                 accountRepository.save(receiverAccount);
 
                 // (keep your transaction saving code here)
+                // Sender transaction
+                Transaction senderTx = new Transaction();
+                senderTx.setAccount(senderAccount);
+                senderTx.setAmount(amount);
+                senderTx.setRemainingBalance(senderAccount.getBalance());
+                senderTx.setRemark(request.getRemark());
+                senderTx.setTargetAccountNumber(receiverAccount.getAccountNumber());
+                senderTx.setTimestamp(Instant.now());
+                senderTx.setTransactionType(TransactionType.WITHDRAW);
+                transactionRepository.save(senderTx);
+
+                // Receiver transaction
+                Transaction receiverTx = new Transaction();
+                receiverTx.setAccount(receiverAccount);
+                receiverTx.setAmount(amount);
+                receiverTx.setRemainingBalance(receiverAccount.getBalance());
+                receiverTx.setRemark("Received from " + senderAccount.getAccountNumber());
+                receiverTx.setTargetAccountNumber(senderAccount.getAccountNumber());
+                receiverTx.setTimestamp(Instant.now());
+                receiverTx.setTransactionType(TransactionType.DEPOSIT);
+                transactionRepository.save(receiverTx);
+
+                log.info("Transfer from {} to {} amount {}",
+                                senderAccNo, receiverAccNo, amount);
 
                 return "Transfer successful";
         }
