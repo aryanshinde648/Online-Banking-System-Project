@@ -24,16 +24,17 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ResponseEntity<String> registerAdmin(AdminDto admin) {
-        
-        Admin newAdmin = adminConversion.toEntity(admin);  
+
+        Admin newAdmin = adminConversion.toEntity(admin);
 
         if (adminRepository.findByEmail(newAdmin.getEmail()) != null) {
             return ResponseEntity.badRequest().body("Admin with email " + newAdmin.getEmail() + " already exists");
         }
         if (adminRepository.findByAdharcard(newAdmin.getAdharcard()) != null) {
-            return ResponseEntity.badRequest().body("Admin with Adharcard No. " + newAdmin.getAdharcard() + " already exists");
+            return ResponseEntity.badRequest()
+                    .body("Admin with Adharcard No. " + newAdmin.getAdharcard() + " already exists");
         }
-        
+
         Admin admin2 = adminRepository.save(newAdmin);
 
         String name = admin2.getFname() + " " + admin2.getLname();
@@ -43,7 +44,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ResponseEntity<AdminDto> getAdminById(Long id) {
-        
+
         Admin admin = adminRepository.findById(id).orElseThrow(() -> new RuntimeException("Admin not found"));
 
         AdminDto adminDto = adminConversion.toDto(admin);
@@ -53,7 +54,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ResponseEntity<String> updateAdmin(Long id, AdminDto admin) {
-        
+
         Admin existingAdmin = adminRepository.findById(id).orElseThrow(() -> new RuntimeException("Admin not found"));
 
         existingAdmin.setFname(admin.getFname());
@@ -68,14 +69,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ResponseEntity<String> deleteAdmin(Long id) {
-        
+
         Admin existingAdmin = adminRepository.findById(id).orElseThrow(() -> new RuntimeException("Admin not found"));
 
         adminRepository.delete(existingAdmin);
 
         return ResponseEntity.ok("Admin deleted successfully");
     }
-
 
     @Override
     public ResponseEntity<String> changePassword(Long id, String oldPassword, String newPassword) {
@@ -96,11 +96,39 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = adminRepository.findByEmail(email);
         if (admin == null) {
             return ResponseEntity.notFound().build();
-        }
-        else {
+        } else {
             AdminDto adminDto = adminConversion.toDto(admin);
             return ResponseEntity.ok(adminDto);
-        }   
+        }
+    }
+
+    @Override
+    public AdminDto register(AdminDto admin) {
+
+        Admin newAdmin = adminConversion.toEntity(admin);
+
+        if (adminRepository.findByEmail(newAdmin.getEmail()) != null) {
+            throw new RuntimeException("Admin with email " + newAdmin.getEmail() + " already exists");
+        }
+        if (adminRepository.findByAdharcard(newAdmin.getAdharcard()) != null) {
+            throw new RuntimeException("Admin with Adharcard No. " + newAdmin.getAdharcard() + " already exists");
+        }
+
+        Admin saved = adminRepository.save(newAdmin);
+
+        return adminConversion.toDto(saved);
+    }
+
+    @Override
+    public AdminDto authenticateAdmin(String email, String pass) {
+        Admin admin = adminRepository.getByEmail(email).orElseThrow(() -> new RuntimeException("Admin not found with email"));
+
+        if (!admin.getPassword().equals(pass)) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        log.info("Admin Logged success with email: {}"+email);
+        return adminConversion.toDto(admin);
     }
 
 }

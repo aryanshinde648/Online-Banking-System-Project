@@ -1,8 +1,8 @@
-package com.obs.Online_Banking_System.restcontroller;
-
+package com.obs.Online_Banking_System.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +21,7 @@ import com.obs.Online_Banking_System.service.CustomerService;
 import lombok.extern.slf4j.Slf4j;
 
 
-@RestController
+@Controller
 @RequestMapping("/admin")
 @Slf4j
 public class AdminController {

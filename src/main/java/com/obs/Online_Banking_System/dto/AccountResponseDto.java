@@ -29,4 +29,6 @@ public class AccountResponseDto {
     private String branch;
 
     private String ifsc;
+
+    private CustomerDto customerDto;
 }

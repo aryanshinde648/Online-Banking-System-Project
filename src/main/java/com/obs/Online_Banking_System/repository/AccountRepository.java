@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.obs.Online_Banking_System.entity.Account;
+import com.obs.Online_Banking_System.entity.Customer;
+
+import java.util.List;
+
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
@@ -19,5 +23,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Account getByAdharcard(Long adharcard);
 
     boolean existsByAccountNumber(Long accountNumber);
+
+    Optional<Account> findByCustomer(Customer customer);
 
 }

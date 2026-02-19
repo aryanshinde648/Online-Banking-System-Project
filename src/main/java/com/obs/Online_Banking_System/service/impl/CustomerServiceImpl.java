@@ -1,5 +1,7 @@
 package com.obs.Online_Banking_System.service.impl;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,28 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
     CustomerConversion customerConversion;
+
+    @Override
+    public Map<String,Object> registerCustomerMap(CustomerDto customerDto) {
+        Map<String,Object> response = new HashMap<>();
+
+        Customer newCust = customerConversion.toCustomerEntity(customerDto);
+
+        if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
+            response.put("adhar-error", "Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
+            log.warn("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
+        }
+        if (customerRepository.findByEmail(customerDto.getEmail()).isPresent()) {
+            response.put("email-error", "Customer with Email " + newCust.getEmail() + " already exists");
+            log.warn("Customer with Email " + newCust.getEmail() + " already exists");
+        }
+
+        customerRepository.save(newCust);
+
+        response.put("customer", customerConversion.toCustomerDto(newCust));
+
+        return response;
+    }
 
     @Override
     public CustomerDto registerCustomer(CustomerDto customerDto) {
@@ -126,6 +150,19 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer customer = customerRepository.getByAdharcard(adharcard);
         
+        return customerConversion.toCustomerDto(customer);
+    }
+
+    @Override
+    public CustomerDto athenticateCustomer(String email, String pass) {
+        
+        Customer customer = customerRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Customer Not Found with email id"));
+
+        if (!customer.getPassword().equals(pass)) {
+            throw new RuntimeException("Invalid Email or Password");
+        }
+
+        log.info("Customer logged in with email: {}"+ email);
         return customerConversion.toCustomerDto(customer);
     }
 
