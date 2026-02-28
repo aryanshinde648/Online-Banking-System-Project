@@ -17,6 +17,7 @@ import com.obs.Online_Banking_System.repository.AccountRepository;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.CustomerService;
+import com.obs.Online_Banking_System.service.TransactionService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AccountServiceImpl implements AccountService{
+public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private AccountConversion accountConversion;
@@ -34,6 +35,9 @@ public class AccountServiceImpl implements AccountService{
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private TransactionService transactionService;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -50,22 +54,17 @@ public class AccountServiceImpl implements AccountService{
     @Override
     public AccountDto createAccount(AccountCreateDto accountCreateDto) {
 
-        
         if (customerRepository.findByEmail(accountCreateDto.getEmail()).isEmpty()) {
-            throw new RuntimeException("Customer not found with email "+accountCreateDto.getEmail());
+            throw new RuntimeException("Customer not found with email " + accountCreateDto.getEmail());
         }
 
         Customer customer = customerRepository.getByEmail(accountCreateDto.getEmail());
-
-        BigDecimal initialBalance = accountCreateDto.getInitialDeposit() == null
-                ? BigDecimal.ZERO
-                : new BigDecimal(accountCreateDto.getInitialDeposit());
 
         long accountNumber = generateAccountNumber();
 
         Account account = new Account();
         account.setAccountNumber(accountNumber);
-        account.setBalance(initialBalance);
+        account.setBalance(BigDecimal.ZERO);
         account.setAdharcard(customer.getAdharcard());
         account.setCreatedAt(Instant.now());
         account.setAccountType(accountCreateDto.getAccountType());
@@ -73,6 +72,8 @@ public class AccountServiceImpl implements AccountService{
 
         accountRepository.save(account);
         AccountDto accountDto = accountConversion.toAccountDto(account);
+
+        transactionService.saveInitialDepositTransaction(accountCreateDto, accountDto, customer.getEmail());
 
         return accountDto;
     }
@@ -95,7 +96,7 @@ public class AccountServiceImpl implements AccountService{
 
     @Override
     public AccountDto getAccountByAccountNumber(Long accountNumber) {
-        
+
         if (accountRepository.findByAccountNumber(accountNumber).isEmpty()) {
             throw new RuntimeException("Account not found with account number: " + accountNumber);
         }
@@ -108,22 +109,23 @@ public class AccountServiceImpl implements AccountService{
     @Override
     public AccountDto getAccountByCustomerEmail(String email) {
 
-        /*   Logic
-            1. Find the customer by email
-            2. Get the adharcard number from the customer
-            3. Find the account by adharcard number
-        */
+        /*
+         * Logic
+         * 1. Find the customer by email
+         * 2. Get the adharcard number from the customer
+         * 3. Find the account by adharcard number
+         */
 
         if (customerRepository.findByEmail(email).isEmpty()) {
             throw new RuntimeException("Customer not found with email: " + email);
         }
 
         Customer customer = customerRepository.getByEmail(email);
-        
+
         if (accountRepository.findByAdharcard(customer.getAdharcard()).isEmpty()) {
             throw new RuntimeException("Account not found for customer with email: " + email);
         }
-        
+
         Account account = accountRepository.getByAdharcard(customer.getAdharcard());
 
         return accountConversion.toAccountDto(account);
@@ -134,16 +136,17 @@ public class AccountServiceImpl implements AccountService{
         AccountDto acc = getAccountByCustomerEmail(email);
 
         AccountResponseDto responseDto = AccountResponseDto.builder()
-                    .accountNumber(acc.getAccountNumber())
-                    .accountType(acc.getAccountType())
-                    .adharcard(acc.getAdharcard())
-                    .balance(acc.getBalance())
-                    .branch(acc.getBranch())
-                    .ifsc(acc.getIfsc())
-                    .customerDto(customerConversion.toCustomerDto(acc.getCustomer()))
-                    .build();
-                    
+                .id(acc.getAccountId())
+                .accountNumber(acc.getAccountNumber())
+                .accountType(acc.getAccountType())
+                .adharcard(acc.getAdharcard())
+                .balance(acc.getBalance())
+                .branch(acc.getBranch())
+                .ifsc(acc.getIfsc())
+                .customerDto(customerConversion.toCustomerDto(acc.getCustomer()))
+                .build();
+
         return responseDto;
     }
-    
+
 }

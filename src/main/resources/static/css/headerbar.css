@@ -1,0 +1,185 @@
+/* ============================================
+   Online Banking System — Shared Header Styles
+   Strategy: navbar is ALWAYS single row.
+   On mobile, text labels hide → icon-only buttons.
+   This means padding-top: 64px is reliable on ALL screen sizes.
+   ============================================ */
+
+/* ---- Fixed navbar base (shared by .navbar-auth and .navbar-auth-nav) ---- */
+.navbar-auth,
+.navbar-auth-nav {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Content below a fixed navbar uses this to add exactly the right offset */
+.has-fixed-header {
+    padding-top: 64px !important;
+}
+
+/* ---- Inner layout wrapper ---- */
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 0 1.25rem;
+    gap: 0.5rem;
+}
+
+/* ---- Brand ---- */
+.brand-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+.brand-title:hover { opacity: 0.88; color: #fff; }
+
+/* Short brand shown only on mobile */
+.brand-short { display: none; }
+.brand-full  { display: inline; }
+
+/* ---- Right-side nav area ---- */
+.nav-buttons-section {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+/* Welcome greeting */
+.nav-welcome {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    margin-right: 0.15rem;
+}
+
+/* Vertical dividers */
+.nav-divider,
+.nav-divider-auth {
+    width: 1px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.32);
+    margin: 0 0.2rem;
+    flex-shrink: 0;
+}
+
+/* ---- Shared button style (nav-link-auth) ---- */
+.nav-link-auth {
+    color: rgba(255, 255, 255, 0.92) !important;
+    font-weight: 600;
+    padding: 0.42rem 0.95rem !important;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    transition: background 0.2s, border-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1;
+}
+.nav-link-auth:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ---- Auth-page buttons (login/register pages) ---- */
+.auth-nav-button {
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-weight: 600;
+    padding: 0.45rem 1.15rem;
+    border-radius: 8px;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    font-size: 0.875rem;
+}
+.auth-nav-button:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+.auth-nav-button.active {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #fff;
+}
+
+/* ============================================
+   MOBILE  ≤ 640px
+   Key idea: keep navbar SINGLE ROW by:
+     1. Shortening the brand to "OBS"
+     2. Hiding the welcome text
+     3. Hiding button labels → icon-only pill buttons
+   This guarantees navbar is always exactly 64px →
+   .has-fixed-header: padding-top: 64px always works.
+   ============================================ */
+@media (max-width: 640px) {
+
+    /* Switch brand to short version */
+    .brand-full  { display: none; }
+    .brand-short { display: inline; }
+    .brand-title { font-size: 1.1rem; gap: 0.3rem; }
+
+    /* Hide welcome greeting to reclaim space */
+    .nav-welcome { display: none; }
+
+    /* Hide dividers on mobile */
+    .nav-divider,
+    .nav-divider-auth { display: none; }
+
+    /* Button label text → hide on mobile, icon remains */
+    .btn-label { display: none; }
+
+    /* Make nav-link-auth buttons square/circular icon pills */
+    .nav-link-auth {
+        padding: 0.42rem 0.55rem !important;
+        border-radius: 8px;
+        gap: 0;
+        font-size: 0.95rem;
+    }
+
+    /* Keep auth-nav-button label-free but still pill-shaped */
+    .auth-nav-button {
+        padding: 0.42rem 0.65rem;
+        font-size: 0;      /* hides text while keeping icon */
+        gap: 0;
+    }
+    .auth-nav-button i {
+        font-size: 1rem;   /* restore icon size */
+    }
+
+    .nav-buttons-section { gap: 0.35rem; }
+
+    .nav-container { padding: 0 0.85rem; }
+}

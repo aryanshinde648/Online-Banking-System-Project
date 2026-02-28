@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Online Banking System - Home</title>
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --brand-primary: #667eea;
+            --brand-secondary: #764ba2;
+            --surface: #ffffff;
+            --text-main: #223047;
+            --text-muted: #607086;
+            --success: #16a34a;
+            --warning: #f59e0b;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-main);
+        }
+
+        .hero-wrapper {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem 2rem;
+        }
+
+        .hero-panel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(18, 24, 40, 0.25);
+            padding: 2.4rem;
+            color: #fff;
+        }
+
+        .hero-panel::before {
+            content: '';
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 999px;
+            top: -120px;
+            right: -80px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+        }
+
+        .hero-title {
+            font-size: clamp(1.9rem, 3.5vw, 3rem);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 0.8rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.02rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 620px;
+            margin-bottom: 1.6rem;
+        }
+
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            padding: 0.5rem 0.95rem;
+            font-size: 0.9rem;
+            margin: 0.35rem 0.35rem 0 0;
+        }
+
+        .access-card {
+            background: var(--surface);
+            border: 1px solid #edf2f7;
+            border-radius: 16px;
+            box-shadow: 0 12px 35px rgba(15, 23, 42, 0.12);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            height: 100%;
+        }
+
+        .access-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+        }
+
+        .icon-circle {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .icon-customer {
+            background: rgba(102, 126, 234, 0.14);
+            color: var(--brand-primary);
+        }
+
+        .icon-admin {
+            background: rgba(118, 75, 162, 0.14);
+            color: var(--brand-secondary);
+        }
+
+        .btn-brand {
+            border: none;
+            border-radius: 10px;
+            padding: 0.72rem 1.2rem;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-brand-primary {
+            background: linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: #fff;
+        }
+
+        .btn-brand-light {
+            background: #f4f7ff;
+            color: var(--text-main);
+            border: 1px solid #dde6ff;
+        }
+
+        .btn-brand:hover {
+            transform: scale(1.02);
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #e7ecf5;
+            border-radius: 14px;
+            padding: 1.1rem;
+            height: 100%;
+        }
+
+        .feature-icon {
+            color: var(--success);
+            margin-right: 0.4rem;
+        }
+
+        .trust-banner {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 14px;
+            border: 1px solid #e5eaf5;
+            padding: 1rem 1.2rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 rgba(22, 163, 74, 0.7);
+            animation: pulse 1.8s infinite;
+            display: inline-block;
+            margin-right: 0.45rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+            }
+        }
+    </style>
+</head>
+
+<body class="has-fixed-header">
+    <div th:replace="~{headerbar-customer :: auth-nav}"></div>
+
+    <main class="hero-wrapper">
+        <section class="hero-panel mb-4">
+            <p class="mb-2 fw-semibold text-uppercase" style="letter-spacing: 1px; opacity: 0.92;">
+                <i class="fas fa-building-columns me-2"></i>Smart Digital Banking
+            </p>
+            <h1 class="hero-title">Manage Savings, Transfers, and Accounts in One Secure Platform</h1>
+            <p class="hero-subtitle">
+                Online Banking System gives both customers and administrators a single place to manage accounts, monitor
+                transactions, and deliver secure banking experiences.
+            </p>
+            <div>
+                <span class="stat-chip"><i class="fas fa-shield-alt"></i> Bank-grade security</span>
+                <span class="stat-chip"><i class="fas fa-bolt"></i> Fast transfers</span>
+                <span class="stat-chip"><i class="fas fa-mobile-alt"></i> Mobile-ready UI</span>
+            </div>
+        </section>
+
+        <section class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="access-card p-4">
+                    <div class="icon-circle icon-customer"><i class="fas fa-user"></i></div>
+                    <h3 class="h4 fw-bold mb-2">Customer Access</h3>
+                    <p class="text-muted mb-4">Check balances, transfer funds, and review your transaction history from
+                        a personalized dashboard.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:href="@{/login-customer}" class="btn btn-brand btn-brand-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login as Customer
+                        </a>
+                        <a th:href="@{/customer/register-customer}" class="btn btn-brand btn-brand-light">
+                            <i class="fas fa-user-plus me-1"></i> Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="access-card p-4">
+                    <div class="icon-circle icon-admin"><i class="fas fa-user-shield"></i></div>
+                    <h3 class="h4 fw-bold mb-2">Admin Access</h3>
+                    <p class="text-muted mb-4">Control customer records, review system activity, and manage operations
+                        through admin tools.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:href="@{/login-admin}" class="btn btn-brand btn-brand-primary">
+                            <i class="fas fa-lock me-1"></i> Login as Admin
+                        </a>
+                        <a th:href="@{/admin/register-admin}" class="btn btn-brand btn-brand-light">
+                            <i class="fas fa-user-plus me-1"></i> Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h4 class="h6 fw-bold mb-2"><i class="fas fa-check-circle feature-icon"></i>Real-time Balance</h4>
+                    <p class="mb-0 text-muted">Current balances and account details are available instantly after each
+                        transaction.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h4 class="h6 fw-bold mb-2"><i class="fas fa-check-circle feature-icon"></i>Transaction History</h4>
+                    <p class="mb-0 text-muted">Track debits, credits, and references clearly with organized statements
+                        and records.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h4 class="h6 fw-bold mb-2"><i class="fas fa-check-circle feature-icon"></i>Secure Access</h4>
+                    <p class="mb-0 text-muted">Role-based login flow for customers and admins with protected actions and
+                        account controls.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="trust-banner d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div><span class="pulse-dot"></span>All services are running normally</div>
+            <div class="fw-semibold text-dark"><i class="fas fa-headset me-1" style="color: var(--warning);"></i> 24x7
+                Banking Support Experience</div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

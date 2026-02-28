@@ -19,4 +19,10 @@ public class TransactionResponseDto {
     private String remainingBalance;
 
     private String targetAccount;
+
+    private Long senderAccountId;
+    private Long receiverAccountId;
+
+    private String senderName;
+    private String receiverName;
 }

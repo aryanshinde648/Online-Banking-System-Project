@@ -15,7 +15,9 @@ import lombok.Setter;
 @Setter
 @Builder
 public class AccountResponseDto {
-    
+
+    private Long id;
+
     private Long accountNumber;
 
     private AccountType accountType;

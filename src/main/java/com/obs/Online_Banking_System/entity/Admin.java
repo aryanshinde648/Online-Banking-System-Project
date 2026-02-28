@@ -1,5 +1,7 @@
 package com.obs.Online_Banking_System.entity;
 
+import com.obs.Online_Banking_System.enumDto.AdminRole;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -47,5 +49,8 @@ public class Admin {
 
     @Column(name = "adharcard", unique = true)
     private Long adharcard;
+
+    @Column(name = "admin_role")
+    private AdminRole adminRole;
 
 }

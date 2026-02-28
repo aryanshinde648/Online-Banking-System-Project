@@ -1,7 +1,10 @@
 package com.obs.Online_Banking_System.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import com.obs.Online_Banking_System.dto.AccountCreateDto;
+import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
 
@@ -14,5 +17,7 @@ public interface TransactionService {
     String transfer(TransactionRequestDto request, String email);
 
     List<TransactionResponseDto> getAllTransactions(String email);
+
+    String saveInitialDepositTransaction(AccountCreateDto accountCreateDto, AccountDto accountDto, String email);
     
 }

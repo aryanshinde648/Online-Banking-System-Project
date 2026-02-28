@@ -9,6 +9,8 @@ select * from account;
 
 select * from customers;
 
+select * from transactions;
+
 drop table admins;
 drop table transactions;
 drop table account;

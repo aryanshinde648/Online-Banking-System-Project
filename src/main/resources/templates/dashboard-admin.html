@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Online Banking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-custom {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem 3rem;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            padding: 1.5rem;
+            height: 100%;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border: 1px solid #eef2ff;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon-purple {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .stat-icon-green {
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
+        }
+
+        .stat-icon-orange {
+            background: rgba(245, 158, 11, 0.12);
+            color: #f59e0b;
+        }
+
+        .stat-icon-red {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Main content cards */
+        .card-modern {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eef2ff;
+        }
+
+        .card-header-modern {
+            background: transparent;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header-modern h5 {
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        /* Welcome banner */
+        .welcome-banner {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .welcome-text h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.2rem;
+        }
+
+        .welcome-text p {
+            margin: 0;
+            opacity: 0.85;
+            font-size: 0.9rem;
+        }
+
+        /* Table styles */
+        .table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .table td {
+            vertical-align: middle;
+            color: #334155;
+            font-size: 0.9rem;
+            border-color: #f1f5f9;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge-custom {
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3em 0.65em;
+        }
+
+        .avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .loading-row td {
+            text-align: center;
+            color: #94a3b8;
+            padding: 2.5rem !important;
+        }
+
+        /* Search bar */
+        .search-input {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+        }
+
+        /* Activity feed */
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="has-fixed-header">
+    <div th:replace="~{headerbar-admin :: header}"></div>
+
+    <div class="container-custom">
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div class="welcome-text">
+                <h2>
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <span id="adminWelcome">Admin Dashboard</span>
+                </h2>
+                <p>Manage customers, accounts, and system activity from one place.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <span
+                    style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.85rem;">
+                    <i class="fas fa-calendar me-1"></i>
+                    <span id="todayDate"></span>
+                </span>
+                <span
+                    style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.85rem;">
+                    <i class="fas fa-circle me-1" style="color: #4ade80; font-size: 0.6rem;"></i> System Online
+                </span>
+            </div>
+        </div>
+
+        <!-- Stat Cards Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-purple"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" id="totalCustomers">—</div>
+                    <div class="stat-label">Total Customers</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-green"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-value" id="totalAccounts">—</div>
+                    <div class="stat-label">Total Accounts</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Table + Quick Panel -->
+        <div class="row g-4">
+
+            <!-- Customer List -->
+            <div class="col-lg-8">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-users text-primary me-2"></i>All Customers</h5>
+                        <input type="text" class="search-input" id="customerSearch"
+                            placeholder="Search by name or email…">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table mb-0" id="customerTable">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">Customer</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Joined</th>
+                                    <th class="pe-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerBody">
+                                <tr class="loading-row">
+                                    <td colspan="5"><i class="fas fa-spinner fa-spin me-2"></i>Loading customers…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Info Panel -->
+            <div class="col-lg-4">
+                <div class="card-modern h-100">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-bolt text-warning me-2"></i>Quick Stats</h5>
+                    </div>
+                    <div class="p-3">
+                        <div class="list-group list-group-flush" id="quickStats">
+                            <div
+                                class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-bottom">
+                                <span class="text-muted" style="font-size: 0.875rem;">Savings Accounts</span>
+                                <strong id="savingsCount">—</strong>
+                            </div>
+                            <div
+                                class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size: 0.875rem;">Current Accounts</span>
+                                <strong id="currentCount">—</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin info separator -->
+                    <div class="card-header-modern mt-2">
+                        <h5><i class="fas fa-user-shield text-secondary me-2"></i>Logged-in Admin</h5>
+                    </div>
+                    <div class="p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div
+                                style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold" id="adminName" style="color:#1e293b;">Admin</div>
+                                <div class="text-muted" id="adminEmail" style="font-size:0.82rem;">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // --- Inject server-side session data ---
+        const adminFname = /*[[${session.loggedInAdmin != null ? session.loggedInAdmin.fname : ''}]]*/ '';
+        const adminLname = /*[[${session.loggedInAdmin != null ? session.loggedInAdmin.lname : ''}]]*/ '';
+        const adminEmailVal = /*[[${session.loggedInAdmin != null ? session.loggedInAdmin.email : ''}]]*/ '';
+
+        // Set welcome & admin info from session
+        if (adminFname) {
+            document.getElementById('adminWelcome').textContent = 'Welcome, ' + adminFname + ' 👋';
+            document.getElementById('adminName').textContent = adminFname + ' ' + adminLname;
+        }
+        if (adminEmailVal) document.getElementById('adminEmail').textContent = adminEmailVal;
+
+        // Today's date
+        document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        // ----- Load Customers -----
+        let allCustomers = [];
+
+        async function loadCustomers() {
+            try {
+                const res = await fetch('/admin/api/customers');
+                if (!res.ok) throw new Error('Failed to load customers');
+                allCustomers = await res.json();
+
+                document.getElementById('totalCustomers').textContent = allCustomers.length;
+                renderCustomerTable(allCustomers);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('customerBody').innerHTML =
+                    '<tr class="loading-row"><td colspan="5"><i class="fas fa-exclamation-circle me-1 text-danger"></i>Could not load customers</td></tr>';
+            }
+        }
+
+        function renderCustomerTable(customers) {
+            const tbody = document.getElementById('customerBody');
+            if (!customers.length) {
+                tbody.innerHTML = '<tr class="loading-row"><td colspan="5"><i class="fas fa-inbox me-2"></i>No customers registered yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = customers.map(c => {
+                const initials = ((c.fname || '?')[0] + (c.lname || '?')[0]).toUpperCase();
+                const name = [c.fname, c.lname].filter(Boolean).join(' ') || '—';
+                const joined = c.dob || '—';
+                return `<tr>
+                <td class="ps-3">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle">${initials}</div>
+                        <span class="fw-semibold">${name}</span>
+                    </div>
+                </td>
+                <td>${c.email || '—'}</td>
+                <td>${c.phone || '—'}</td>
+                <td><small>${joined}</small></td>
+                <td class="pe-3"><span class="badge bg-success badge-custom">Active</span></td>
+            </tr>`;
+            }).join('');
+        }
+
+        // Live customer search
+        document.getElementById('customerSearch').addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            if (!q) { renderCustomerTable(allCustomers); return; }
+            const filtered = allCustomers.filter(c =>
+                (c.fname || '').toLowerCase().includes(q) ||
+                (c.lname || '').toLowerCase().includes(q) ||
+                (c.email || '').toLowerCase().includes(q)
+            );
+            renderCustomerTable(filtered);
+        });
+
+        // ----- Load accounts stats -----
+        async function loadStats() {
+            try {
+                const accRes = await fetch('/admin/api/accounts');
+                if (accRes.ok) {
+                    const accounts = await accRes.json();
+                    document.getElementById('totalAccounts').textContent = accounts.length;
+                    const savings = accounts.filter(a => (a.accountType || '').toUpperCase() === 'SAVINGS').length;
+                    const current = accounts.filter(a => (a.accountType || '').toUpperCase() === 'CURRENT').length;
+                    document.getElementById('savingsCount').textContent = savings;
+                    document.getElementById('currentCount').textContent = current;
+                }
+            } catch (e) {
+                console.error('Stats load error:', e);
+            }
+        }
+
+        loadCustomers();
+        loadStats();
+    </script>
+</body>
+
+</html>

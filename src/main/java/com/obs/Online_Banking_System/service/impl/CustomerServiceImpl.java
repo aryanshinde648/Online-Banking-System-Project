@@ -88,11 +88,20 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDto updateCustomerById(Long id, CustomerDto customerDto) {
         Customer existingCustomer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
- 
-        existingCustomer.setEmail(customerDto.getEmail());
-        existingCustomer.setPassword(customerDto.getPassword());
-        existingCustomer.setAddress(customerDto.getAddress());
-        existingCustomer.setPhone(customerDto.getPhone());
+
+        if (customerDto.getFname() != null)
+            existingCustomer.setFname(customerDto.getFname());
+        if (customerDto.getLname() != null)
+            existingCustomer.setLname(customerDto.getLname());
+        if (customerDto.getEmail() != null)
+            existingCustomer.setEmail(customerDto.getEmail());
+        if (customerDto.getPhone() != null)
+            existingCustomer.setPhone(customerDto.getPhone());
+        if (customerDto.getAddress() != null)
+            existingCustomer.setAddress(customerDto.getAddress());
+        if (customerDto.getPassword() != null && !customerDto.getPassword().isBlank()) {
+            existingCustomer.setPassword(customerDto.getPassword());
+        }
 
         customerRepository.save(existingCustomer);
 
@@ -174,6 +183,11 @@ public class CustomerServiceImpl implements CustomerService {
         Map<String, Object> response = new HashMap<>();
         
         Customer customer = customerRepository.getByEmail(email);
+
+        if (customer == null) {
+            response.put("error", "Customer Not Found Invalid Email or Password");
+            return response;
+        }
 
         if (!customer.getPassword().equals(pass)) {
             response.put("error", "Invalid Email or Password");

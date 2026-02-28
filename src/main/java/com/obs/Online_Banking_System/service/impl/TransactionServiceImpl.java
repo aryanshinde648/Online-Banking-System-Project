@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.obs.Online_Banking_System.dto.AccountCreateDto;
+import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
 import com.obs.Online_Banking_System.entity.Account;
@@ -15,6 +17,7 @@ import com.obs.Online_Banking_System.entity.Customer;
 import com.obs.Online_Banking_System.entity.Transaction;
 import com.obs.Online_Banking_System.enumDto.TransactionType;
 import com.obs.Online_Banking_System.exception.ResourceNotFoundException;
+import com.obs.Online_Banking_System.mapper.AccountConversion;
 import com.obs.Online_Banking_System.repository.AccountRepository;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.repository.TransactionRepository;
@@ -34,6 +37,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         @Autowired
         private AccountRepository accountRepository;
+
+        @Autowired
+        private AccountConversion accountConversion;
 
         @Override
         @Transactional
@@ -59,6 +65,8 @@ public class TransactionServiceImpl implements TransactionService {
                 tx.setTargetAccountNumber(request.getTargetAccountNo());
                 tx.setTimestamp(Instant.now());
                 tx.setTransactionType(TransactionType.DEPOSIT);
+                tx.setSenderAccountId(acc.getId());
+                tx.setReceiverAccountId(acc.getId());
 
                 transactionRepository.save(tx);
 
@@ -93,6 +101,8 @@ public class TransactionServiceImpl implements TransactionService {
                 tx.setTargetAccountNumber(request.getTargetAccountNo());
                 tx.setTimestamp(Instant.now());
                 tx.setTransactionType(TransactionType.WITHDRAW);
+                tx.setSenderAccountId(acc.getId());
+                tx.setReceiverAccountId(acc.getId());
 
                 transactionRepository.save(tx);
 
@@ -140,8 +150,18 @@ public class TransactionServiceImpl implements TransactionService {
                                         .orElseThrow(() -> new RuntimeException("Sender account not found"));
                 }
 
-                Account senderAccount = firstLock.getAccountNumber().equals(senderAccNo) ? firstLock : secondLock;
-                Account receiverAccount = firstLock.getAccountNumber().equals(receiverAccNo) ? firstLock : secondLock;
+                // Assign sender/receiver directly from lock order — avoids Long.equals(String)
+                // bug
+                Account senderAccount, receiverAccount;
+                if (senderAccNo.compareTo(receiverAccNo) < 0) {
+                        // firstLock = sender, secondLock = receiver
+                        senderAccount = firstLock;
+                        receiverAccount = secondLock;
+                } else {
+                        // firstLock = receiver, secondLock = sender
+                        receiverAccount = firstLock;
+                        senderAccount = secondLock;
+                }
 
                 BigDecimal amount = request.getAmount();
 
@@ -157,8 +177,7 @@ public class TransactionServiceImpl implements TransactionService {
                 accountRepository.save(senderAccount);
                 accountRepository.save(receiverAccount);
 
-                // (keep your transaction saving code here)
-                // Sender transaction
+                // Sender transaction (WITHDRAW)
                 Transaction senderTx = new Transaction();
                 senderTx.setAccount(senderAccount);
                 senderTx.setAmount(amount);
@@ -166,10 +185,12 @@ public class TransactionServiceImpl implements TransactionService {
                 senderTx.setRemark(request.getRemark());
                 senderTx.setTargetAccountNumber(receiverAccount.getAccountNumber());
                 senderTx.setTimestamp(Instant.now());
-                senderTx.setTransactionType(TransactionType.WITHDRAW);
+                senderTx.setTransactionType(TransactionType.TRANSFER);
+                senderTx.setSenderAccountId(senderAccount.getId());
+                senderTx.setReceiverAccountId(receiverAccount.getId());
                 transactionRepository.save(senderTx);
 
-                // Receiver transaction
+                // Receiver transaction (DEPOSIT)
                 Transaction receiverTx = new Transaction();
                 receiverTx.setAccount(receiverAccount);
                 receiverTx.setAmount(amount);
@@ -177,7 +198,9 @@ public class TransactionServiceImpl implements TransactionService {
                 receiverTx.setRemark("Received from " + senderAccount.getAccountNumber());
                 receiverTx.setTargetAccountNumber(senderAccount.getAccountNumber());
                 receiverTx.setTimestamp(Instant.now());
-                receiverTx.setTransactionType(TransactionType.DEPOSIT);
+                receiverTx.setTransactionType(TransactionType.TRANSFER);
+                receiverTx.setSenderAccountId(senderAccount.getId());
+                receiverTx.setReceiverAccountId(receiverAccount.getId());
                 transactionRepository.save(receiverTx);
 
                 log.info("Transfer from {} to {} amount {}",
@@ -195,7 +218,8 @@ public class TransactionServiceImpl implements TransactionService {
                 Account account = accountRepository.findByCustomer(customer)
                                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
-                List<TransactionResponseDto> txr = transactionRepository.findByAccount(account)
+                List<TransactionResponseDto> txr = transactionRepository
+                                .findByAccountOrderByTimestampDesc(account)
                                 .stream()
                                 .map(tx -> TransactionResponseDto.builder()
                                                 .type(tx.getTransactionType().name())
@@ -205,10 +229,53 @@ public class TransactionServiceImpl implements TransactionService {
                                                 .remainingBalance(tx.getRemainingBalance().toString())
                                                 .targetAccount(tx.getTargetAccountNumber() == null ? null
                                                                 : String.valueOf(tx.getTargetAccountNumber()))
+                                                .senderAccountId(tx.getSenderAccountId())
+                                                .receiverAccountId(tx.getReceiverAccountId())
+                                                .senderName(resolveCustomerName(tx.getSenderAccountId(),
+                                                                account.getId()))
+                                                .receiverName(resolveCustomerName(tx.getReceiverAccountId(),
+                                                                account.getId()))
                                                 .build())
                                 .toList();
 
                 return txr;
+        }
+
+        /**
+         * Resolve a JPA account ID to a customer full name.
+         * Returns "Self" when the ID matches the logged-in customer's own account.
+         * Returns "Unknown" when the account cannot be found.
+         */
+        private String resolveCustomerName(Long accountId, Long ownAccountId) {
+                if (accountId == null)
+                        return "—";
+                if (accountId.equals(ownAccountId))
+                        return "Self";
+                return accountRepository.findById(accountId)
+                                .map(acc -> {
+                                        Customer c = acc.getCustomer();
+                                        if (c == null)
+                                                return "Unknown";
+                                        String fname = c.getFname() != null ? c.getFname() : "";
+                                        String lname = c.getLname() != null ? c.getLname() : "";
+                                        return (fname + " " + lname).trim();
+                                })
+                                .orElse("Unknown");
+        }
+
+        @Override
+        public String saveInitialDepositTransaction(AccountCreateDto acc, AccountDto accountDto, String email) {
+
+                TransactionRequestDto tx = TransactionRequestDto
+                                .builder()
+                                .amount(BigDecimal.valueOf(acc.getInitialDeposit()))
+                                .remark("Initial Deposit")
+                                .targetAccountNo(accountDto.getAccountNumber())
+                                .build();
+
+                deposit(tx, email);
+
+                return "Transaction saved";
         }
 
 }

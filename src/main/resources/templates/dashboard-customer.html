@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+        }
+
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .card-modern {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .balance-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+
+        .table-striped tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .no-account-card {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-account-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .container-custom {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        /* ---- PIN Modal ---- */
+        .pin-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 20, 40, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .pin-overlay.active { display: flex; }
+
+        .pin-modal {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2.2rem 2rem 1.8rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+            text-align: center;
+            animation: pinPop 0.28s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes pinPop {
+            from { opacity:0; transform: scale(0.88); }
+            to   { opacity:1; transform: scale(1); }
+        }
+
+        .pin-lock-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: white;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 24px rgba(102,126,234,0.35);
+        }
+
+        .pin-modal h4 {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.3rem;
+            font-size: 1.15rem;
+        }
+
+        .pin-summary {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            margin: 1rem 0 1.4rem;
+            font-size: 0.875rem;
+            color: #475569;
+            text-align: left;
+        }
+        .pin-summary strong { color: #1e293b; }
+
+        /* 6 individual digit boxes */
+        .pin-boxes {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 0.6rem;
+        }
+        .pin-box {
+            width: 44px;
+            height: 54px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-align: center;
+            color: #1e293b;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #f8fafc;
+        }
+        .pin-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.18);
+            background: #fff;
+        }
+        .pin-box.filled {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        @keyframes shake {
+            0%,100%{ transform:translateX(0);}
+            20%{ transform:translateX(-7px);}
+            40%{ transform:translateX(7px);}
+            60%{ transform:translateX(-5px);}
+            80%{ transform:translateX(5px);}
+        }
+        .pin-boxes.shake { animation: shake 0.4s ease; }
+
+        .pin-error-msg {
+            font-size: 0.8rem;
+            color: #dc2626;
+            min-height: 1.2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .btn-pin-confirm {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            width: 100%;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .btn-pin-confirm:hover:not(:disabled) { opacity: 0.9; transform: scale(1.01); }
+        .btn-pin-confirm:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .btn-pin-cancel {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            cursor: pointer;
+            text-decoration: underline;
+            display: block;
+            width: 100%;
+        }
+        .btn-pin-cancel:hover { color: #1e293b; }
+        /* ---- Amount input group ---- */
+        .input-group-currency .input-group-text {
+            background: #f0f3ff;
+            border: 2px solid #e2e8f0;
+            border-right: none;
+            color: #667eea;
+            font-weight: 700;
+            font-size: 1rem;
+            border-radius: 8px 0 0 8px;
+        }
+        .input-group-currency .form-control {
+            border-radius: 0 8px 8px 0;
+        }
+        /* Colored transaction amounts */
+        .tx-credit { color: #16a34a; font-weight: 700; }
+        .tx-debit  { color: #dc2626; font-weight: 700; }
+        /* Table tweaks */
+        #txTable td { vertical-align: middle; }
+        #txTable .date-cell { white-space: nowrap; font-size: 0.82rem; color: #475569; }
+        #txTable .date-time { display: block; font-size: 0.72rem; color: #94a3b8; }
+    </style>
+</head>
+
+<body class="has-fixed-header">
+    <div th:replace="~{headerbar-customer :: header}"></div>
+    <script th:inline="javascript"></script>
+
+
+    <!-- Main Container -->
+    <div class="container-custom">
+
+        <!-- No Account Card -->
+        <div id="noAccountCard" class="hidden">
+            <div class="no-account-card">
+                <div class="no-account-icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <h2 class="mb-3 text-dark">No Account Yet</h2>
+                <p class="text-muted mb-4">You don't have a bank account. Create one to start managing your finances!
+                </p>
+
+                <form id="createAccountForm" class="d-inline-block w-100" style="max-width: 400px;">
+                    <div class="mb-3">
+                        <label for="accountType" class="form-label">Account Type</label>
+                        <select name="accountType" id="accountType" class="form-select">
+                            <option value="SAVINGS">Savings Account</option>
+                            <option value="CURRENT">Current Account</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="initialDeposit" class="form-label">Initial Deposit</label>
+                        <input type="number" name="initialDeposit" id="initialDeposit" class="form-control"
+                            placeholder="Enter amount" value="0" min="0" step="0.01" />
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100">
+                        <i class="fas fa-plus-circle"></i> Create Account
+                    </button>
+                    <div id="createAccountMsg" class="message hidden"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Account Area (shown when account exists) -->
+        <div id="accountArea" class="hidden">
+            <!-- Balance Card -->
+            <div class="mb-4">
+                <div class="balance-card">
+                    <div class="text-white-50" style="font-size: 0.9rem;">
+                        <i class="fas fa-credit-card"></i> Account Number
+                    </div>
+                    <div style="font-size: 1.1rem; letter-spacing: 2px;">
+                        <span id="accNumber">-</span>
+                    </div>
+                    <div class="text-white-50 mt-3" style="font-size: 0.9rem;">Current Balance</div>
+                    <div class="balance-display">₹<span id="accBalance">0.00</span></div>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="text-white-50" style="font-size: 0.85rem;">Account Type</div>
+                            <div style="font-weight: 600;"><span id="accType">-</span></div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-white-50" style="font-size: 0.85rem;">Status</div>
+                            <div style="font-weight: 600; color: #2ecc71;">Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transfer & Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="card-modern p-4">
+                        <h5 class="mb-4">
+                            <i class="fas fa-exchange-alt text-primary"></i> Transfer Money
+                        </h5>
+                        <form id="transferForm">
+                            <div class="mb-3">
+                                <label for="targetAccountNo" class="form-label">Recipient Account Number</label>
+                                <input type="number" id="targetAccountNo" name="targetAccountNo" class="form-control"
+                                    placeholder="Enter account number" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount</label>
+                                <div class="input-group input-group-currency">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" id="amount" name="amount" class="form-control"
+                                        placeholder="0.00" step="0.01" min="1" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="remark" class="form-label">Reference (Optional)</label>
+                                <input type="text" id="remark" name="remark" class="form-control"
+                                    placeholder="e.g., Rent payment">
+                            </div>
+                            <button type="submit" class="btn btn-primary-custom w-100">
+                                <i class="fas fa-paper-plane"></i> Send Money
+                            </button>
+                            <div id="transferMsg" class="message hidden"></div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card-modern p-4">
+                        <h5 class="mb-4">
+                            <i class="fas fa-info-circle text-info"></i> Quick Info
+                        </h5>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Total Transactions</small>
+                                <strong id="txCount" class="fs-5">0</strong>
+                            </div>
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Last Transaction</small>
+                                <strong id="lastTx" style="font-size:0.875rem;">-</strong>
+                            </div>
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="fas fa-sync-alt me-1"></i>Auto-refresh (30s)</small>
+                                <small id="refreshIndicator" style="color:#94a3b8;font-size:0.75rem;">—</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card-modern p-4">
+                <h5 class="mb-4">
+                    <i class="fas fa-history text-success"></i> Transaction History
+                </h5>
+                <div class="table-responsive">
+                    <table id="txTable" class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="fas fa-calendar-alt me-1"></i> Date &amp; Time</th>
+                                <th><i class="fas fa-tag me-1"></i> Type</th>
+                                <th><i class="fas fa-rupee-sign me-1"></i> Amount</th>
+                                <th><i class="fas fa-wallet me-1"></i> Remaining Balance</th>
+                                <th><i class="fas fa-comment-alt me-1"></i> Reference</th>
+                                <th><i class="fas fa-exchange-alt me-1"></i> Received From / Sent To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="text-center text-muted py-4">Loading transactions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PIN VERIFICATION MODAL ========== -->
+<div class="pin-overlay" id="pinOverlay">
+    <div class="pin-modal">
+        <div class="pin-lock-icon"><i class="fas fa-lock"></i></div>
+        <h4>Verify Transaction</h4>
+        <p style="color:#64748b;font-size:0.875rem;margin-bottom:0;">Enter your 6-digit transaction PIN to confirm</p>
+
+        <div class="pin-summary" id="pinSummary">
+            <div><strong>To Account:</strong> <span id="pinAccNo">—</span></div>
+            <div><strong>Amount:</strong> ₹<span id="pinAmount">—</span></div>
+            <div id="pinRemarkRow"><strong>Remark:</strong> <span id="pinRemark">—</span></div>
+        </div>
+
+        <div class="pin-boxes" id="pinBoxes">
+            <input class="pin-box" id="pin0" type="password" inputmode="numeric" maxlength="1">
+            <input class="pin-box" id="pin1" type="password" inputmode="numeric" maxlength="1">
+            <input class="pin-box" id="pin2" type="password" inputmode="numeric" maxlength="1">
+            <input class="pin-box" id="pin3" type="password" inputmode="numeric" maxlength="1">
+            <input class="pin-box" id="pin4" type="password" inputmode="numeric" maxlength="1">
+            <input class="pin-box" id="pin5" type="password" inputmode="numeric" maxlength="1">
+        </div>
+        <div class="pin-error-msg" id="pinErrorMsg"></div>
+
+        <button class="btn-pin-confirm" id="pinConfirmBtn" disabled>Confirm Transfer</button>
+        <button class="btn-pin-cancel" id="pinCancelBtn">Cancel</button>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const welcome = document.getElementById('welcome');
+        const profileBtn = document.getElementById('profileBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const accountArea = document.getElementById('accountArea');
+        const noAccountCard = document.getElementById('noAccountCard');
+
+        const fname = /*[[${session.loggedInCustomer != null ? session.loggedInCustomer.fname : ''}]]*/ '';
+        const email = /*[[${session.email != null ? session.email : ''}]]*/ '';
+
+        if (fname) welcome.textContent = 'Welcome, ' + fname;
+
+        profileBtn.addEventListener('click', () => {
+            window.location.href = '/customer/profile';
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/auth/logout', { method: 'POST' });
+                if (res.ok) { window.location.href = '/login-customer'; }
+                else { alert('Logout failed'); }
+            } catch (e) { alert('Logout error'); }
+        });
+
+        let refreshTimer  = null;
+        let myAccountId   = null;   // JPA id of the logged-in customer's account
+
+        async function loadAccount(silent = false) {
+            try {
+                const res = await fetch('/customer/api/account', { cache: 'no-store' });
+                if (!res.ok) {
+                    accountArea.classList.add('hidden');
+                    noAccountCard.classList.remove('hidden');
+                    stopAutoRefresh();
+                    return;
+                }
+
+                const acc = await res.json();
+                myAccountId = acc.id || null;   // cache for transfer direction detection
+                noAccountCard.classList.add('hidden');
+                accountArea.classList.remove('hidden');
+
+                document.getElementById('accNumber').textContent = acc.accountNumber || '-';
+                // acc.balance is a number from JSON — parse safely
+                const bal = parseFloat(acc.balance);
+                document.getElementById('accBalance').textContent = isNaN(bal) ? '0.00' : bal.toFixed(2);
+                document.getElementById('accType').textContent = (acc.accountType || '-');
+
+                // createdAt is an Instant → ISO string like "2026-02-27T..."
+                if (acc.createdAt) {
+                    const { date } = fmtDate(acc.createdAt);
+                    document.getElementById('accCreated').textContent = date;
+                } else {
+                    document.getElementById('accCreated').textContent = '-';
+                }
+
+                // Update last-refreshed indicator
+                const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                const ind = document.getElementById('refreshIndicator');
+                if (ind) ind.textContent = 'Updated ' + now;
+
+                loadTransactions();
+            } catch (e) {
+                console.error('Error loading account:', e);
+            }
+        }
+
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            refreshTimer = setInterval(() => loadAccount(true), 30000); // every 30s
+        }
+
+        function stopAutoRefresh() {
+            if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+        }
+
+
+        // Format ISO date string → "27 Feb 2026" + secondary "6:14 PM"
+        function fmtDate(iso) {
+            if (!iso) return { date: '-', time: '' };
+            try {
+                const d = new Date(iso);
+                return {
+                    date: d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    time: d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                };
+            } catch { return { date: iso, time: '' }; }
+        }
+
+        async function loadTransactions() {
+            try {
+                const res = await fetch('/customer/api/transactions');
+                if (!res.ok) return;
+                const txs = await res.json();
+                const tbody = document.querySelector('#txTable tbody');
+                tbody.innerHTML = '';
+
+                if (txs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-inbox me-2"></i>No transactions yet</td></tr>';
+                    document.getElementById('txCount').textContent = '0';
+                    document.getElementById('lastTx').textContent = '-';
+                    return;
+                }
+
+                document.getElementById('txCount').textContent = txs.length;
+                // Format last transaction date in Quick Info
+                const lastFmt = fmtDate(txs[0]?.date);
+                document.getElementById('lastTx').textContent = lastFmt.date + (lastFmt.time ? ', ' + lastFmt.time : '');
+
+                txs.forEach(t => {
+                    const tr = document.createElement('tr');
+                    const amt = parseFloat(t.amount || 0);
+                    const bal = parseFloat(t.remainingBalance || 0);
+                    const { date, time } = fmtDate(t.date);
+
+                    // Determine direction — for TRANSFER use senderAccountId vs myAccountId
+                    let isDebit, badgeCls, badgeLabel, prefix, amtClass;
+                    if (t.type === 'TRANSFER') {
+                        isDebit    = myAccountId && String(t.senderAccountId) === String(myAccountId);
+                        badgeLabel = isDebit ? 'SENT' : 'RECEIVED';
+                        badgeCls   = isDebit ? 'bg-warning text-dark' : 'bg-primary';
+                        prefix     = isDebit ? '−' : '+';
+                        amtClass   = isDebit ? 'tx-debit' : 'tx-credit';
+                    } else {
+                        isDebit    = t.type === 'DEBIT' || t.type === 'WITHDRAW';
+                        badgeLabel = t.type || '-';
+                        badgeCls   = isDebit ? 'bg-danger' : 'bg-success';
+                        prefix     = isDebit ? '−' : '+';
+                        amtClass   = isDebit ? 'tx-debit' : 'tx-credit';
+                    }
+
+                    // Counterparty column — use resolved names (with fallback to IDs)
+                    const sentTo       = t.receiverName || t.receiverAccountId || t.targetAccount || '—';
+                    const receivedFrom = t.senderName   || t.senderAccountId   || t.targetAccount || '—';
+                    const counterpartyLabel = isDebit
+                        ? `<small class="text-muted" style="font-size:0.7rem;">Sent To</small><br><strong>${sentTo}</strong>`
+                        : `<small class="text-muted" style="font-size:0.7rem;">Received From</small><br><strong>${receivedFrom}</strong>`;
+
+                    tr.innerHTML = `
+                        <td class="date-cell">${date}<span class="date-time">${time}</span></td>
+                        <td><span class="badge ${badgeCls}">${badgeLabel}</span></td>
+                        <td class="${amtClass}">${prefix}₹${amt.toFixed(2)}</td>
+                        <td>₹${bal.toFixed(2)}</td>
+                        <td><small>${t.remark || '—'}</small></td>
+                        <td>${counterpartyLabel}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error('Error loading transactions:', e);
+                document.querySelector('#txTable tbody').innerHTML =
+                    '<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-circle me-1"></i>Error loading transactions</td></tr>';
+            }
+        }
+
+
+        // ============================================================
+        //  PIN Modal Logic
+        // ============================================================
+        const pinOverlay    = document.getElementById('pinOverlay');
+        const pinBoxes      = document.getElementById('pinBoxes');
+        const pinInputs     = Array.from(pinBoxes.querySelectorAll('.pin-box'));
+        const pinConfirmBtn = document.getElementById('pinConfirmBtn');
+        const pinCancelBtn  = document.getElementById('pinCancelBtn');
+        const pinErrorMsg   = document.getElementById('pinErrorMsg');
+
+        let pendingTransferData = null;  // holds transfer payload until PIN confirmed
+
+        // Helper: collect PIN from all boxes
+        function getPin() { return pinInputs.map(i => i.value).join(''); }
+
+        // Helper: reset the modal to clean state
+        function resetModal() {
+            pinInputs.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+            pinErrorMsg.textContent = '';
+            pinConfirmBtn.disabled = true;
+            pinBoxes.classList.remove('shake');
+        }
+
+        // Open the modal and populate the summary
+        function openPinModal(data) {
+            pendingTransferData = data;
+            document.getElementById('pinAccNo').textContent  = data.targetAccountNo;
+            document.getElementById('pinAmount').textContent = parseFloat(data.amount).toFixed(2);
+            const remark = (data.remark || '').trim();
+            document.getElementById('pinRemarkRow').style.display = remark ? '' : 'none';
+            document.getElementById('pinRemark').textContent = remark || '';
+            resetModal();
+            pinOverlay.classList.add('active');
+            setTimeout(() => pinInputs[0].focus(), 80);
+        }
+
+        function closePinModal() {
+            pinOverlay.classList.remove('active');
+            pendingTransferData = null;
+            resetModal();
+        }
+
+        // OTP-box keyboard behavior
+        pinInputs.forEach((box, idx) => {
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    if (box.value) {
+                        box.value = '';
+                        box.classList.remove('filled');
+                    } else if (idx > 0) {
+                        pinInputs[idx - 1].focus();
+                        pinInputs[idx - 1].value = '';
+                        pinInputs[idx - 1].classList.remove('filled');
+                    }
+                    e.preventDefault();
+                } else if (e.key === 'ArrowLeft' && idx > 0) {
+                    pinInputs[idx - 1].focus();
+                } else if (e.key === 'ArrowRight' && idx < 5) {
+                    pinInputs[idx + 1].focus();
+                }
+            });
+
+            box.addEventListener('input', (e) => {
+                const val = e.target.value.replace(/\D/g, '');
+                if (!val) { box.value = ''; box.classList.remove('filled'); return; }
+                box.value = val.slice(-1);
+                box.classList.add('filled');
+                pinErrorMsg.textContent = '';
+                if (idx < 5) pinInputs[idx + 1].focus();
+                pinConfirmBtn.disabled = getPin().length < 6;
+            });
+
+            // Allow pasting a 6-digit PIN all at once
+            box.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+                pasted.split('').forEach((ch, i) => {
+                    if (pinInputs[i]) {
+                        pinInputs[i].value = ch;
+                        pinInputs[i].classList.add('filled');
+                    }
+                });
+                const nextEmpty = pinInputs.find(b => !b.value);
+                (nextEmpty || pinInputs[5]).focus();
+                pinConfirmBtn.disabled = getPin().length < 6;
+            });
+        });
+
+        // Cancel
+        pinCancelBtn.addEventListener('click', closePinModal);
+        pinOverlay.addEventListener('click', (e) => { if (e.target === pinOverlay) closePinModal(); });
+
+        // Confirm → submit transfer with PIN
+        pinConfirmBtn.addEventListener('click', async () => {
+            if (!pendingTransferData) return;
+            const pin = getPin();
+            if (pin.length < 6) return;
+
+            pinConfirmBtn.disabled = true;
+            pinConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing…';
+            pinErrorMsg.textContent = '';
+
+            const payload = { ...pendingTransferData, pin };
+            const msgEl   = document.getElementById('transferMsg');
+
+            try {
+                const res  = await fetch('/customer/api/transfer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+
+                if (res.ok) {
+                    closePinModal();
+                    msgEl.textContent = json.message || 'Transfer completed successfully!';
+                    msgEl.classList.remove('hidden', 'error');
+                    msgEl.classList.add('success');
+                    document.getElementById('transferForm').reset();
+                    await loadAccount();   // immediate — no delay
+                } else {
+                    // Wrong PIN → shake and show error
+                    pinBoxes.classList.remove('shake');
+                    void pinBoxes.offsetWidth;   // reflow to restart animation
+                    pinBoxes.classList.add('shake');
+                    pinErrorMsg.textContent = json.error || 'Invalid PIN. Please try again.';
+                    pinInputs.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+                    pinInputs[0].focus();
+                    pinConfirmBtn.disabled = true;
+                }
+            } catch (err) {
+                pinErrorMsg.textContent = 'Connection error. Please try again.';
+            } finally {
+                pinConfirmBtn.innerHTML = 'Confirm Transfer';
+                pinConfirmBtn.disabled = getPin().length < 6;
+            }
+        });
+
+        // ---- Transfer form intercepts → opens PIN modal ----
+        document.getElementById('transferForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const msgEl = document.getElementById('transferMsg');
+            msgEl.classList.add('hidden');
+            msgEl.classList.remove('success', 'error');
+
+            const data = {
+                amount:          parseFloat(form.amount.value),
+                targetAccountNo: parseInt(form.targetAccountNo.value),
+                remark:          form.remark.value
+            };
+            openPinModal(data);
+        });
+
+
+        document.getElementById('createAccountForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const f = e.target;
+            const msgEl = document.getElementById('createAccountMsg');
+            msgEl.classList.remove('success', 'error');
+            msgEl.classList.add('hidden');
+
+            const payload = {
+                initialDeposit: parseFloat(f.initialDeposit.value || 0),
+                accountType: f.accountType.value,
+                email: email
+            };
+            try {
+                const res = await fetch('/customer/createAccount', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+                msgEl.textContent = json.Account ? 'Account created successfully!' : (json.message || 'Error creating account');
+                msgEl.classList.add(json.Account ? 'success' : 'error');
+                msgEl.classList.remove('hidden');
+                if (json.Account) {
+                    setTimeout(loadAccount, 1500);
+                }
+            } catch (e) {
+                msgEl.textContent = 'Error creating account. Please try again.';
+                msgEl.classList.add('error');
+                msgEl.classList.remove('hidden');
+            }
+        });
+
+        loadAccount();
+        startAutoRefresh();
+    </script>
+
+</body>
+
+</html>

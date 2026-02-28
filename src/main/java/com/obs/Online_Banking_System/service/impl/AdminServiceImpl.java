@@ -1,11 +1,15 @@
 package com.obs.Online_Banking_System.service.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.AdminDto;
 import com.obs.Online_Banking_System.entity.Admin;
+import com.obs.Online_Banking_System.enumDto.AdminRole;
 import com.obs.Online_Banking_System.mapper.AdminConversion;
 import com.obs.Online_Banking_System.repository.AdminRepository;
 import com.obs.Online_Banking_System.service.AdminService;
@@ -23,6 +27,28 @@ public class AdminServiceImpl implements AdminService {
     private AdminConversion adminConversion;
 
     @Override
+    public ResponseEntity<String> registerAdministrative(AdminDto admin) {
+
+        Admin newAdmin = adminConversion.toEntity(admin);
+
+        if (adminRepository.findByEmail(newAdmin.getEmail()) != null) {
+            return ResponseEntity.badRequest().body("Admin with email " + newAdmin.getEmail() + " already exists");
+        }
+        if (adminRepository.findByAdharcard(newAdmin.getAdharcard()) != null) {
+            return ResponseEntity.badRequest()
+                    .body("Admin with Adharcard No. " + newAdmin.getAdharcard() + " already exists");
+        }
+
+        newAdmin.setAdminRole(AdminRole.ADMINISTRATIVE);
+
+        Admin admin2 = adminRepository.save(newAdmin);
+
+        String name = admin2.getFname() + " " + admin2.getLname();
+
+        return ResponseEntity.ok("Administrative " + name + " registered successfully");
+    }
+
+    @Override
     public ResponseEntity<String> registerAdmin(AdminDto admin) {
 
         Admin newAdmin = adminConversion.toEntity(admin);
@@ -34,6 +60,8 @@ public class AdminServiceImpl implements AdminService {
             return ResponseEntity.badRequest()
                     .body("Admin with Adharcard No. " + newAdmin.getAdharcard() + " already exists");
         }
+
+        newAdmin.setAdminRole(AdminRole.MANAGER);
 
         Admin admin2 = adminRepository.save(newAdmin);
 
@@ -114,6 +142,8 @@ public class AdminServiceImpl implements AdminService {
             throw new RuntimeException("Admin with Adharcard No. " + newAdmin.getAdharcard() + " already exists");
         }
 
+        newAdmin.setAdminRole(AdminRole.MANAGER);
+
         Admin saved = adminRepository.save(newAdmin);
 
         return adminConversion.toDto(saved);
@@ -129,6 +159,27 @@ public class AdminServiceImpl implements AdminService {
 
         log.info("Admin Logged success with email: {}"+email);
         return adminConversion.toDto(admin);
+    }
+
+    @Override
+    public Map<String, Object> athenticateAdminMap(String email, String pass) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Admin admin = adminRepository.findByEmail(email);
+
+        if (admin == null) {
+            response.put("error", "Admin Not Found Invalid Email or Password");
+            return response;
+        }
+
+        if (!admin.getPassword().equals(pass)) {
+            response.put("error", "Invalid Email or Password");
+            return response;
+        }
+
+        log.info("Admin logged in with email: {}"+ email);
+        response.put("admin", adminConversion.toDto(admin));
+        return response;
     }
 
 }
