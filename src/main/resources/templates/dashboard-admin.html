@@ -80,6 +80,27 @@
             font-size: 0.875rem;
             color: #64748b;
             font-weight: 500;
+            margin-bottom: 0.6rem;
+        }
+
+        .stat-card-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-top: 0.6rem;
+            padding: 0.3rem 0.85rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1.5px solid #667eea;
+            color: #667eea;
+            background: transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+        }
+        .stat-card-btn:hover {
+            background: #667eea;
+            color: white;
         }
 
         /* Main content cards */
@@ -262,32 +283,61 @@
 
         <!-- Stat Cards Row -->
         <div class="row g-3 mb-4">
-            <div class="col-sm-6">
+            <div class="col-sm-6 col-lg">
                 <div class="stat-card">
                     <div class="stat-icon stat-icon-purple"><i class="fas fa-users"></i></div>
                     <div class="stat-value" id="totalCustomers">—</div>
                     <div class="stat-label">Total Customers</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/dashboard-admin'"><i class="fas fa-users me-1"></i>View All</button>
                 </div>
             </div>
-            <div class="col-sm-6">
+            <div class="col-sm-6 col-lg">
                 <div class="stat-card">
                     <div class="stat-icon stat-icon-green"><i class="fas fa-wallet"></i></div>
                     <div class="stat-value" id="totalAccounts">—</div>
                     <div class="stat-label">Total Accounts</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/all-accounts'"><i class="fas fa-wallet me-1"></i>View All</button>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-orange"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="stat-value" id="savingsCount">—</div>
+                    <div class="stat-label">Savings Accounts</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/all-accounts?type=SAVINGS'"><i class="fas fa-filter me-1"></i>Show Savings</button>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-red"><i class="fas fa-briefcase"></i></div>
+                    <div class="stat-value" id="currentCount">—</div>
+                    <div class="stat-label">Current Accounts</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/all-accounts?type=CURRENT'"><i class="fas fa-filter me-1"></i>Show Current</button>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:rgba(99,102,241,0.12);color:#6366f1;"><i class="fas fa-exchange-alt"></i></div>
+                    <div class="stat-value" id="totalTransactions">—</div>
+                    <div class="stat-label">Total Transactions</div>
+                    <button class="stat-card-btn" style="border-color:#6366f1;color:#6366f1;" onclick="window.location='/admin/all-transactions'"><i class="fas fa-exchange-alt me-1"></i>View All</button>
                 </div>
             </div>
         </div>
 
-        <!-- Customer Table + Quick Panel -->
+        <!-- Customer Table (full width) -->
         <div class="row g-4">
-
-            <!-- Customer List -->
-            <div class="col-lg-8">
+            <div class="col-12">
                 <div class="card-modern">
                     <div class="card-header-modern">
-                        <h5><i class="fas fa-users text-primary me-2"></i>All Customers</h5>
-                        <input type="text" class="search-input" id="customerSearch"
-                            placeholder="Search by name or email…">
+                        <h5><i class="fas fa-users text-primary me-2"></i>All Customers
+                            <span id="pageInfo" class="ms-2 text-muted" style="font-size:0.8rem;font-weight:400;"></span>
+                        </h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="text" class="search-input" id="customerSearch" placeholder="Search by name or email…">
+                            <button class="btn btn-sm btn-outline-secondary" id="prevPage" title="Previous"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" id="nextPage" title="Next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table mb-0" id="customerTable">
@@ -297,60 +347,43 @@
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>Joined</th>
-                                    <th class="pe-3">Status</th>
+                                    <th>Status</th>
+                                    <th class="pe-3 text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="customerBody">
                                 <tr class="loading-row">
-                                    <td colspan="5"><i class="fas fa-spinner fa-spin me-2"></i>Loading customers…</td>
+                                    <td colspan="6"><i class="fas fa-spinner fa-spin me-2"></i>Loading customers…</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Quick Info Panel -->
-            <div class="col-lg-4">
-                <div class="card-modern h-100">
+        <!-- Logged-in Admin Card (horizontal, below customers) -->
+        <div class="row g-4 mt-1">
+            <div class="col-12">
+                <div class="card-modern">
                     <div class="card-header-modern">
-                        <h5><i class="fas fa-bolt text-warning me-2"></i>Quick Stats</h5>
-                    </div>
-                    <div class="p-3">
-                        <div class="list-group list-group-flush" id="quickStats">
-                            <div
-                                class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-bottom">
-                                <span class="text-muted" style="font-size: 0.875rem;">Savings Accounts</span>
-                                <strong id="savingsCount">—</strong>
-                            </div>
-                            <div
-                                class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
-                                <span class="text-muted" style="font-size: 0.875rem;">Current Accounts</span>
-                                <strong id="currentCount">—</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Admin info separator -->
-                    <div class="card-header-modern mt-2">
                         <h5><i class="fas fa-user-shield text-secondary me-2"></i>Logged-in Admin</h5>
                     </div>
                     <div class="p-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div
-                                style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;">
+                            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;flex-shrink:0;">
                                 <i class="fas fa-user-tie"></i>
                             </div>
                             <div>
-                                <div class="fw-bold" id="adminName" style="color:#1e293b;">Admin</div>
-                                <div class="text-muted" id="adminEmail" style="font-size:0.82rem;">—</div>
+                                <div class="fw-bold fs-6" id="adminName" style="color:#1e293b;">Admin</div>
+                                <div class="text-muted" id="adminEmail" style="font-size:0.85rem;">—</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -370,65 +403,103 @@
         // Today's date
         document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
-        // ----- Load Customers -----
-        let allCustomers = [];
+        // ----- Load Customers with pagination -----
+        let allCustomers   = [];
+        let filteredCustomers = [];
+        const PAGE_SIZE    = 10;
+        let currentPage    = 1;
 
         async function loadCustomers() {
             try {
                 const res = await fetch('/admin/api/customers');
                 if (!res.ok) throw new Error('Failed to load customers');
                 allCustomers = await res.json();
-
+                filteredCustomers = allCustomers;
                 document.getElementById('totalCustomers').textContent = allCustomers.length;
-                renderCustomerTable(allCustomers);
+                currentPage = 1;
+                renderPage();
             } catch (e) {
                 console.error(e);
                 document.getElementById('customerBody').innerHTML =
-                    '<tr class="loading-row"><td colspan="5"><i class="fas fa-exclamation-circle me-1 text-danger"></i>Could not load customers</td></tr>';
+                    '<tr class="loading-row"><td colspan="6"><i class="fas fa-exclamation-circle me-1 text-danger"></i>Could not load customers</td></tr>';
             }
         }
 
-        function renderCustomerTable(customers) {
+        function renderPage() {
             const tbody = document.getElementById('customerBody');
-            if (!customers.length) {
-                tbody.innerHTML = '<tr class="loading-row"><td colspan="5"><i class="fas fa-inbox me-2"></i>No customers registered yet.</td></tr>';
+            const total = filteredCustomers.length;
+
+            if (!total) {
+                tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><i class="fas fa-inbox me-2"></i>No customers found.</td></tr>';
+                document.getElementById('pageInfo').textContent = '';
+                document.getElementById('prevPage').disabled = true;
+                document.getElementById('nextPage').disabled = true;
                 return;
             }
-            tbody.innerHTML = customers.map(c => {
+
+            const totalPages = Math.ceil(total / PAGE_SIZE);
+            currentPage = Math.max(1, Math.min(currentPage, totalPages));
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageCustomers = filteredCustomers.slice(start, start + PAGE_SIZE);
+
+            // Pagination info e.g. "1–10 of 47 customers"
+            const from = start + 1;
+            const to   = Math.min(start + PAGE_SIZE, total);
+            document.getElementById('pageInfo').textContent = `${from}–${to} of ${total} customer${total !== 1 ? 's' : ''}`;
+            document.getElementById('prevPage').disabled = currentPage <= 1;
+            document.getElementById('nextPage').disabled = currentPage >= totalPages;
+
+            tbody.innerHTML = pageCustomers.map(c => {
                 const initials = ((c.fname || '?')[0] + (c.lname || '?')[0]).toUpperCase();
-                const name = [c.fname, c.lname].filter(Boolean).join(' ') || '—';
-                const joined = c.dob || '—';
+                const name     = [c.fname, c.lname].filter(Boolean).join(' ') || '—';
+                const joined   = c.dob || '—';
+                const cid      = c.customerId || '';
                 return `<tr>
-                <td class="ps-3">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-circle">${initials}</div>
-                        <span class="fw-semibold">${name}</span>
-                    </div>
-                </td>
-                <td>${c.email || '—'}</td>
-                <td>${c.phone || '—'}</td>
-                <td><small>${joined}</small></td>
-                <td class="pe-3"><span class="badge bg-success badge-custom">Active</span></td>
-            </tr>`;
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle">${initials}</div>
+                            <span class="fw-semibold">${name}</span>
+                        </div>
+                    </td>
+                    <td>${c.email || '—'}</td>
+                    <td>${c.phone || '—'}</td>
+                    <td><small>${joined}</small></td>
+                    <td><span class="badge bg-success badge-custom">Active</span></td>
+                    <td class="pe-3 text-center">
+                        <a href="/admin/customer-profile/${cid}" class="btn btn-sm btn-outline-primary me-1" title="Show Profile">
+                            <i class="fas fa-user me-1"></i>Profile
+                        </a>
+                        <a href="/admin/customer-account/${cid}" class="btn btn-sm btn-outline-secondary" title="Show Account">
+                            <i class="fas fa-wallet me-1"></i>Account
+                        </a>
+                    </td>
+                </tr>`;
             }).join('');
         }
 
-        // Live customer search
+        // Pagination controls
+        document.getElementById('prevPage').addEventListener('click', () => { currentPage--; renderPage(); });
+        document.getElementById('nextPage').addEventListener('click', () => { currentPage++; renderPage(); });
+
+        // Live search — resets to page 1
         document.getElementById('customerSearch').addEventListener('input', function () {
             const q = this.value.trim().toLowerCase();
-            if (!q) { renderCustomerTable(allCustomers); return; }
-            const filtered = allCustomers.filter(c =>
-                (c.fname || '').toLowerCase().includes(q) ||
-                (c.lname || '').toLowerCase().includes(q) ||
-                (c.email || '').toLowerCase().includes(q)
+            filteredCustomers = !q ? allCustomers : allCustomers.filter(c =>
+                (c.fname  || '').toLowerCase().includes(q) ||
+                (c.lname  || '').toLowerCase().includes(q) ||
+                (c.email  || '').toLowerCase().includes(q)
             );
-            renderCustomerTable(filtered);
+            currentPage = 1;
+            renderPage();
         });
 
         // ----- Load accounts stats -----
         async function loadStats() {
             try {
-                const accRes = await fetch('/admin/api/accounts');
+                const [accRes, txCountRes] = await Promise.all([
+                    fetch('/admin/api/accounts'),
+                    fetch('/admin/api/transactions/count')
+                ]);
                 if (accRes.ok) {
                     const accounts = await accRes.json();
                     document.getElementById('totalAccounts').textContent = accounts.length;
@@ -437,9 +508,57 @@
                     document.getElementById('savingsCount').textContent = savings;
                     document.getElementById('currentCount').textContent = current;
                 }
+                if (txCountRes.ok) {
+                    const count = await txCountRes.json();
+                    document.getElementById('totalTransactions').textContent = count;
+                }
             } catch (e) {
                 console.error('Stats load error:', e);
             }
+        }
+
+        // ----- Stat card button: scroll + optional filter by account type -----
+        let accountTypeFilter = null; // 'SAVINGS' | 'CURRENT' | null
+
+        function scrollToTable(type) {
+            document.getElementById('customerTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (type === 'all') {
+                accountTypeFilter = null;
+                filteredCustomers = allCustomers;
+            } else {
+                accountTypeFilter = type.toUpperCase();
+                applyAccountTypeFilter();
+            }
+            currentPage = 1;
+            renderPage();
+        }
+
+        async function applyAccountTypeFilter() {
+            if (!accountTypeFilter) return;
+            try {
+                const res = await fetch('/admin/api/accounts');
+                if (!res.ok) return;
+                const accounts = await res.json();
+                const emailSet = new Set(
+                    accounts
+                        .filter(a => (a.accountType || '').toUpperCase() === accountTypeFilter)
+                        .map(a => a.createdBy || '')
+                );
+                // Match by email from customerDto inside account, or fallback: match customers who have that account type
+                // Since account DTO may not have email, use customer list and check account via separate call
+                // Simpler: filter customers whose email has a matching account type in accounts list
+                const accountEmailMap = {};
+                accounts.forEach(a => {
+                    if (a.accountType) accountEmailMap[a.adharcard] = (a.accountType || '').toUpperCase();
+                });
+                filteredCustomers = allCustomers.filter(c =>
+                    accounts.some(a => a.adharcard === c.adharcard &&
+                        (a.accountType || '').toUpperCase() === accountTypeFilter)
+                );
+                currentPage = 1;
+                renderPage();
+            } catch(e) { console.error(e); }
         }
 
         loadCustomers();

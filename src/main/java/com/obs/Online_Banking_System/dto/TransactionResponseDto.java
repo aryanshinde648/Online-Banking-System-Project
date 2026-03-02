@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 public class TransactionResponseDto {
 
+    private Long transactionId;
     private String type;
     private String amount;
     private String date;

@@ -2,6 +2,7 @@ package com.obs.Online_Banking_System.service.impl;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -147,6 +148,12 @@ public class AccountServiceImpl implements AccountService {
                 .build();
 
         return responseDto;
+    }
+
+    @Override
+    public List<AccountDto> getAllAccounts() {
+        List<AccountDto> accList = accountConversion.toAccountDtoList(accountRepository.findAll());
+        return accList;
     }
 
 }

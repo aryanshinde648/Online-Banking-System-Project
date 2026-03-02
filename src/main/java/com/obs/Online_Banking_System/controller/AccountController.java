@@ -1,19 +1,19 @@
 package com.obs.Online_Banking_System.controller;
 
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.AccountResponseDto;
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.service.AccountService;
+import com.obs.Online_Banking_System.service.CustomerService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +24,10 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-    //  View My Account
+    @Autowired
+    private CustomerService customerService;
+
+    // View My Account
     @GetMapping("/me")
     public ResponseEntity<AccountResponseDto> getMyAccount(HttpSession session) {
 
@@ -33,17 +36,17 @@ public class AccountController {
         AccountDto acc = accountService.getAccountByCustomerEmail(cust.getEmail());
 
         AccountResponseDto accountResponseDto = AccountResponseDto.builder()
-        .accountNumber(acc.getAccountNumber())
-        .accountType(acc.getAccountType())
-        .adharcard(acc.getAdharcard())
-        .balance(acc.getBalance())
-        .branch(acc.getBranch())
-        .ifsc(acc.getIfsc())
-        .customerDto(cust)
-        .createdAt(acc.getCreatedAt())
-        .build();
+                .accountNumber(acc.getAccountNumber())
+                .accountType(acc.getAccountType())
+                .adharcard(acc.getAdharcard())
+                .balance(acc.getBalance())
+                .branch(acc.getBranch())
+                .ifsc(acc.getIfsc())
+                .customerDto(cust)
+                .createdAt(acc.getCreatedAt())
+                .build();
 
         return ResponseEntity.ok(accountResponseDto);
     }
-    
+
 }

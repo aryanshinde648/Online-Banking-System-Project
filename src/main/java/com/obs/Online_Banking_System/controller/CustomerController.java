@@ -160,14 +160,24 @@ public class CustomerController {
     }
 
     @GetMapping({"/profile", "/profile-customer"})
-    public String showProfile(HttpSession session, Model model) {
-        // Expose logged-in customer and id to the view (templates should use these model attributes)
-        Object logged = session.getAttribute("loggedInCustomer");
-        model.addAttribute("loggedInCustomer", logged);
-        model.addAttribute("customerId", session.getAttribute("customerId"));
+    public String showProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-        model.addAttribute("customer", new CustomerDto());
-        return "profile-customer";
+        CustomerDto customerDto = (CustomerDto) session.getAttribute("loggedInCustomer");
+
+        if (customerDto != null) {
+            // Expose logged-in customer and id to the view (templates should use these
+            // model attributes)
+            Object logged = session.getAttribute("loggedInCustomer");
+            model.addAttribute("loggedInCustomer", logged);
+            model.addAttribute("customerId", session.getAttribute("customerId"));
+
+            model.addAttribute("customer", new CustomerDto());
+            return "profile-customer";
+        }else{
+            // customer is not authenticated, redirect to login
+            redirectAttributes.addFlashAttribute("errorMessage", "Please login to access the dashboard");
+            return "redirect:/login-customer";
+        }
     }
     
     

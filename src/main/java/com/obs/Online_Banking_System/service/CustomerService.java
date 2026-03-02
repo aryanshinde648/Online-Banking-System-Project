@@ -1,5 +1,6 @@
 package com.obs.Online_Banking_System.service;
 
+import java.util.List;
 import java.util.Map;
 
 import com.obs.Online_Banking_System.dto.CustomerDto;
@@ -27,5 +28,7 @@ public interface CustomerService {
     CustomerDto athenticateCustomer(String email, String pass);
 
     Map<String, Object> athenticateCustomerMap(String email, String pass);
+
+    List<CustomerDto> getAllCustomers();
 
 }

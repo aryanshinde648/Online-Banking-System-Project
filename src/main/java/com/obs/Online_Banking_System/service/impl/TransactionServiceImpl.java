@@ -222,6 +222,7 @@ public class TransactionServiceImpl implements TransactionService {
                                 .findByAccountOrderByTimestampDesc(account)
                                 .stream()
                                 .map(tx -> TransactionResponseDto.builder()
+                                                .transactionId(tx.getId())
                                                 .type(tx.getTransactionType().name())
                                                 .amount(tx.getAmount().toString())
                                                 .date(tx.getTimestamp().toString())

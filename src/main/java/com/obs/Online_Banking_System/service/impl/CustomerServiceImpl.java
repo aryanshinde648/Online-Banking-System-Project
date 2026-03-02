@@ -1,6 +1,7 @@
 package com.obs.Online_Banking_System.service.impl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.entity.Customer;
-import com.obs.Online_Banking_System.exception.CustomerAlreadyExistsException;
 import com.obs.Online_Banking_System.mapper.CustomerConversion;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.CustomerService;
@@ -197,6 +197,13 @@ public class CustomerServiceImpl implements CustomerService {
         log.info("Customer logged in with email: {}"+ email);
         response.put("customer", customerConversion.toCustomerDto(customer));
         return response;
+    }
+
+    @Override
+    public List<CustomerDto> getAllCustomers() {
+        List<Customer> cust = customerRepository.findAll();
+        List<CustomerDto> custList = customerConversion.toCustomerDtoList(cust);
+        return custList;
     }
     
 }
