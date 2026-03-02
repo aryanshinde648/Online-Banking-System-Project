@@ -1,0 +1,7 @@
+body { padding-top: 70px; }
+        
+.brand { font-weight: 600; font-size: 1.2rem; }
+        
+.card { max-width: 820px; margin: 20px auto; }
+        
+.pw-strength { height: 6px; border-radius: 4px; }

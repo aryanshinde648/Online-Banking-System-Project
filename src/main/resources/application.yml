@@ -16,6 +16,9 @@ spring:
       hibernate:
         '[format_sql]': false
         dialect: org.hibernate.dialect.MySQLDialect 
+        jdbc:
+          '[batch_size]': 20
+    open-in-view: false
 
 server:
   port: 3030

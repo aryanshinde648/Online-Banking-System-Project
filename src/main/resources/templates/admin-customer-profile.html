@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Profile | Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container-custom { max-width: 800px; margin: 2rem auto; padding: 0 1rem 3rem; }
+        .profile-card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: white;
+        }
+        .avatar-large {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            border: 3px solid rgba(255,255,255,0.6);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: 700; margin-bottom: 1rem;
+            color: white;
+        }
+        .profile-name { font-size: 1.6rem; font-weight: 700; margin: 0; }
+        .profile-email { opacity: 0.85; font-size: 0.95rem; margin-top: 0.25rem; }
+        .profile-body { padding: 2rem; }
+        .info-row {
+            display: flex; align-items: flex-start; gap: 1rem;
+            padding: 1rem 0; border-bottom: 1px solid #f1f5f9;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: rgba(102,126,234,0.1); color: #667eea;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 1rem;
+        }
+        .info-label { font-size: 0.78rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        .info-value { font-size: 0.95rem; color: #1e293b; font-weight: 500; margin-top: 0.15rem; }
+        .back-btn {
+            background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
+            color: white; border-radius: 8px; padding: 0.45rem 1rem;
+            font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: background 0.2s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.28); color: white; }
+        .btn-view-account {
+            background: linear-gradient(135deg,#667eea,#764ba2); color: white;
+            border: none; border-radius: 10px; padding: 0.6rem 1.4rem;
+            font-weight: 600; font-size: 0.9rem; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: opacity 0.2s;
+        }
+        .btn-view-account:hover { opacity: 0.88; color: white; }
+    </style>
+</head>
+<body class="has-fixed-header">
+    <div th:replace="~{headerbar-admin :: header}"></div>
+
+    <div class="container-custom">
+        <!-- Back link -->
+        <div class="mb-3">
+            <a th:href="@{/admin/dashboard-admin}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="profile-card">
+            <!-- Header -->
+            <div class="profile-header">
+                <div class="avatar-large">
+                    <span th:text="${#strings.substring(customer.fname,0,1) + #strings.substring(customer.lname,0,1)}">??</span>
+                </div>
+                <div class="profile-name" th:text="${customer.fname + ' ' + customer.lname}">Full Name</div>
+                <div class="profile-email" th:text="${customer.email}">email@example.com</div>
+            </div>
+
+            <!-- Details -->
+            <div class="profile-body">
+                <div class="info-row">
+                    <div class="info-icon"><i class="fas fa-id-badge"></i></div>
+                    <div>
+                        <div class="info-label">Customer ID</div>
+                        <div class="info-value" th:text="${customer.customerId}">—</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon"><i class="fas fa-phone"></i></div>
+                    <div>
+                        <div class="info-label">Phone</div>
+                        <div class="info-value" th:text="${customer.phone ?: '—'}">—</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon"><i class="fas fa-calendar"></i></div>
+                    <div>
+                        <div class="info-label">Date of Birth</div>
+                        <div class="info-value" th:text="${customer.dob ?: '—'}">—</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div>
+                        <div class="info-label">Address</div>
+                        <div class="info-value" th:text="${customer.address ?: '—'}">—</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon"><i class="fas fa-id-card"></i></div>
+                    <div>
+                        <div class="info-label">Aadhaar Card</div>
+                        <div class="info-value" th:text="${customer.adharcard ?: '—'}">—</div>
+                    </div>
+                </div>
+
+                <!-- Action -->
+                <div class="mt-4 d-flex gap-2">
+                    <a th:href="@{'/admin/customer-account/' + ${customer.customerId}}" class="btn-view-account">
+                        <i class="fas fa-wallet"></i> View Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

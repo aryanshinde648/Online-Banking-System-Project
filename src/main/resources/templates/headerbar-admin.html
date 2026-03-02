@@ -1,0 +1,123 @@
+<header th:fragment="header">
+    <nav class="navbar-auth">
+        <div class="container-fluid nav-container">
+            <!-- Brand -->
+            <a class="brand-title" th:href="@{/}">
+                <i class="fas fa-building-columns"></i>
+                <span class="brand-full">Online Banking System</span>
+                <span class="brand-short">OBS</span>
+            </a>
+
+            <!-- Right-side nav items -->
+            <div class="nav-buttons-section">
+                <!-- Shown when logged in -->
+                <span class="nav-welcome"
+                      th:if="${session.loggedInAdmin != null}"
+                      th:text="'Welcome, ' + ${session.loggedInAdmin.fname}">Welcome</span>
+
+                <div class="nav-divider" th:if="${session.loggedInAdmin != null}"></div>
+
+                <button id="profileBtn" class="btn nav-link-auth" th:if="${session.loggedInAdmin != null}">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="btn-label">Profile</span>
+                </button>
+
+                <button id="logoutBtn" class="btn nav-link-auth" th:if="${session.loggedInAdmin != null}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="btn-label">Logout</span>
+                </button>
+
+                <!-- Shown when logged out -->
+                <a th:if="${session.loggedInAdmin == null}" th:href="@{/login-admin}" class="nav-link-auth">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span class="btn-label">Login</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/admin/logout';
+        });
+    }
+
+    const profileBtn = document.getElementById('profileBtn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/admin/profile';
+        });
+    }
+});
+</script>
+
+<!-- ============================================================
+     auth-nav fragment — used on login / register / home pages
+     ============================================================ -->
+<header th:fragment="auth-nav">
+    <nav class="navbar-auth-nav">
+        <div class="container-fluid nav-container">
+            <!-- Brand -->
+            <a class="brand-title" th:href="@{/}">
+                <i class="fas fa-building-columns"></i>
+                <span class="brand-full">Online Banking System</span>
+                <span class="brand-short">OBS</span>
+            </a>
+
+            <!-- Logged-out: show login buttons -->
+            <div class="nav-buttons-section" th:if="${session.loggedInAdmin == null}">
+                <a th:href="@{/login-customer}" class="auth-nav-button"
+                   th:classappend="${requestURI != null and requestURI.contains('customer') ? ' active' : ''}">
+                    <i class="fas fa-user"></i>
+                    <span class="btn-label">Customer Login</span>
+                </a>
+                <div class="nav-divider-auth"></div>
+                <a th:href="@{/login-admin}" class="auth-nav-button"
+                   th:classappend="${requestURI != null and requestURI.contains('admin') ? ' active' : ''}">
+                    <i class="fas fa-lock"></i>
+                    <span class="btn-label">Admin Login</span>
+                </a>
+            </div>
+
+            <!-- Logged-in: show welcome + profile + logout -->
+            <div class="nav-buttons-section" th:if="${session.loggedInAdmin != null}">
+                <span class="nav-welcome" th:text="'Welcome, ' + ${session.loggedInAdmin.fname}">Welcome</span>
+                <div class="nav-divider-auth"></div>
+                <button id="profileBtn-auth" class="btn nav-link-auth">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="btn-label">Profile</span>
+                </button>
+                <button id="logoutBtn-auth" class="btn nav-link-auth">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="btn-label">Logout</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const logoutBtn = document.getElementById('logoutBtn-auth');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/auth/logout';
+            });
+        }
+
+        const profileBtn = document.getElementById('profileBtn-auth');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/admin/profile';
+            });
+        }
+    });
+    </script>
+</header>

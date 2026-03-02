@@ -1,15 +1,14 @@
 package com.obs.Online_Banking_System.service.impl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.entity.Customer;
-import com.obs.Online_Banking_System.exception.ResourceNotFoundException;
 import com.obs.Online_Banking_System.mapper.CustomerConversion;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.CustomerService;
@@ -35,10 +34,14 @@ public class CustomerServiceImpl implements CustomerService {
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             response.put("adhar-error", "Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
             log.warn("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
+            return response;
+            
         }
+
         if (customerRepository.findByEmail(customerDto.getEmail()).isPresent()) {
             response.put("email-error", "Customer with Email " + newCust.getEmail() + " already exists");
             log.warn("Customer with Email " + newCust.getEmail() + " already exists");
+            return response;
         }
 
         customerRepository.save(newCust);
@@ -85,11 +88,20 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDto updateCustomerById(Long id, CustomerDto customerDto) {
         Customer existingCustomer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
- 
-        existingCustomer.setEmail(customerDto.getEmail());
-        existingCustomer.setPassword(customerDto.getPassword());
-        existingCustomer.setAddress(customerDto.getAddress());
-        existingCustomer.setPhone(customerDto.getPhone());
+
+        if (customerDto.getFname() != null)
+            existingCustomer.setFname(customerDto.getFname());
+        if (customerDto.getLname() != null)
+            existingCustomer.setLname(customerDto.getLname());
+        if (customerDto.getEmail() != null)
+            existingCustomer.setEmail(customerDto.getEmail());
+        if (customerDto.getPhone() != null)
+            existingCustomer.setPhone(customerDto.getPhone());
+        if (customerDto.getAddress() != null)
+            existingCustomer.setAddress(customerDto.getAddress());
+        if (customerDto.getPassword() != null && !customerDto.getPassword().isBlank()) {
+            existingCustomer.setPassword(customerDto.getPassword());
+        }
 
         customerRepository.save(existingCustomer);
 
@@ -166,5 +178,32 @@ public class CustomerServiceImpl implements CustomerService {
         return customerConversion.toCustomerDto(customer);
     }
 
+    @Override
+    public Map<String, Object> athenticateCustomerMap(String email, String pass) {
+        Map<String, Object> response = new HashMap<>();
+        
+        Customer customer = customerRepository.getByEmail(email);
+
+        if (customer == null) {
+            response.put("error", "Customer Not Found Invalid Email or Password");
+            return response;
+        }
+
+        if (!customer.getPassword().equals(pass)) {
+            response.put("error", "Invalid Email or Password");
+            return response;
+        }
+
+        log.info("Customer logged in with email: {}"+ email);
+        response.put("customer", customerConversion.toCustomerDto(customer));
+        return response;
+    }
+
+    @Override
+    public List<CustomerDto> getAllCustomers() {
+        List<Customer> cust = customerRepository.findAll();
+        List<CustomerDto> custList = customerConversion.toCustomerDtoList(cust);
+        return custList;
+    }
     
 }

@@ -11,6 +11,7 @@ import lombok.Setter;
 @Setter
 public class TransactionResponseDto {
 
+    private Long transactionId;
     private String type;
     private String amount;
     private String date;
@@ -19,4 +20,10 @@ public class TransactionResponseDto {
     private String remainingBalance;
 
     private String targetAccount;
+
+    private Long senderAccountId;
+    private Long receiverAccountId;
+
+    private String senderName;
+    private String receiverName;
 }

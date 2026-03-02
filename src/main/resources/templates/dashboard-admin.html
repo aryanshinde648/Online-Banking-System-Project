@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Online Banking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-custom {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem 3rem;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            padding: 1.5rem;
+            height: 100%;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border: 1px solid #eef2ff;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon-purple {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .stat-icon-green {
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
+        }
+
+        .stat-icon-orange {
+            background: rgba(245, 158, 11, 0.12);
+            color: #f59e0b;
+        }
+
+        .stat-icon-red {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 0.6rem;
+        }
+
+        .stat-card-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-top: 0.6rem;
+            padding: 0.3rem 0.85rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1.5px solid #667eea;
+            color: #667eea;
+            background: transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+        }
+        .stat-card-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Main content cards */
+        .card-modern {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eef2ff;
+        }
+
+        .card-header-modern {
+            background: transparent;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header-modern h5 {
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        /* Welcome banner */
+        .welcome-banner {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .welcome-text h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.2rem;
+        }
+
+        .welcome-text p {
+            margin: 0;
+            opacity: 0.85;
+            font-size: 0.9rem;
+        }
+
+        /* Table styles */
+        .table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .table td {
+            vertical-align: middle;
+            color: #334155;
+            font-size: 0.9rem;
+            border-color: #f1f5f9;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge-custom {
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3em 0.65em;
+        }
+
+        .avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .loading-row td {
+            text-align: center;
+            color: #94a3b8;
+            padding: 2.5rem !important;
+        }
+
+        /* Search bar */
+        .search-input {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+        }
+
+        /* Activity feed */
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="has-fixed-header">
+    <div th:replace="~{headerbar-admin :: header}"></div>
+
+    <div class="container-custom">
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div class="welcome-text">
+                <h2>
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <span id="adminWelcome">Admin Dashboard</span>
+                </h2>
+                <p>Manage customers, accounts, and system activity from one place.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <span
+                    style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.85rem;">
+                    <i class="fas fa-calendar me-1"></i>
+                    <span id="todayDate"></span>
+                </span>
+                <span
+                    style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.85rem;">
+                    <i class="fas fa-circle me-1" style="color: #4ade80; font-size: 0.6rem;"></i> System Online
+                </span>
+            </div>
+        </div>
+
+        <!-- Stat Cards Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-purple"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" id="totalCustomers">—</div>
+                    <div class="stat-label">Total Customers</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/dashboard-admin'"><i class="fas fa-users me-1"></i>View All</button>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-green"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-value" id="totalAccounts">—</div>
+                    <div class="stat-label">Total Accounts</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/all-accounts'"><i class="fas fa-wallet me-1"></i>View All</button>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-orange"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="stat-value" id="savingsCount">—</div>
+                    <div class="stat-label">Savings Accounts</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/all-accounts?type=SAVINGS'"><i class="fas fa-filter me-1"></i>Show Savings</button>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-red"><i class="fas fa-briefcase"></i></div>
+                    <div class="stat-value" id="currentCount">—</div>
+                    <div class="stat-label">Current Accounts</div>
+                    <button class="stat-card-btn" onclick="window.location='/admin/all-accounts?type=CURRENT'"><i class="fas fa-filter me-1"></i>Show Current</button>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:rgba(99,102,241,0.12);color:#6366f1;"><i class="fas fa-exchange-alt"></i></div>
+                    <div class="stat-value" id="totalTransactions">—</div>
+                    <div class="stat-label">Total Transactions</div>
+                    <button class="stat-card-btn" style="border-color:#6366f1;color:#6366f1;" onclick="window.location='/admin/all-transactions'"><i class="fas fa-exchange-alt me-1"></i>View All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Table (full width) -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-users text-primary me-2"></i>All Customers
+                            <span id="pageInfo" class="ms-2 text-muted" style="font-size:0.8rem;font-weight:400;"></span>
+                        </h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="text" class="search-input" id="customerSearch" placeholder="Search by name or email…">
+                            <button class="btn btn-sm btn-outline-secondary" id="prevPage" title="Previous"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" id="nextPage" title="Next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table mb-0" id="customerTable">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">Customer</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Joined</th>
+                                    <th>Status</th>
+                                    <th class="pe-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerBody">
+                                <tr class="loading-row">
+                                    <td colspan="6"><i class="fas fa-spinner fa-spin me-2"></i>Loading customers…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logged-in Admin Card (horizontal, below customers) -->
+        <div class="row g-4 mt-1">
+            <div class="col-12">
+                <div class="card-modern">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-user-shield text-secondary me-2"></i>Logged-in Admin</h5>
+                    </div>
+                    <div class="p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;flex-shrink:0;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold fs-6" id="adminName" style="color:#1e293b;">Admin</div>
+                                <div class="text-muted" id="adminEmail" style="font-size:0.85rem;">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // --- Inject server-side session data ---
+        const adminFname = /*[[${session.loggedInAdmin != null ? session.loggedInAdmin.fname : ''}]]*/ '';
+        const adminLname = /*[[${session.loggedInAdmin != null ? session.loggedInAdmin.lname : ''}]]*/ '';
+        const adminEmailVal = /*[[${session.loggedInAdmin != null ? session.loggedInAdmin.email : ''}]]*/ '';
+
+        // Set welcome & admin info from session
+        if (adminFname) {
+            document.getElementById('adminWelcome').textContent = 'Welcome, ' + adminFname + ' 👋';
+            document.getElementById('adminName').textContent = adminFname + ' ' + adminLname;
+        }
+        if (adminEmailVal) document.getElementById('adminEmail').textContent = adminEmailVal;
+
+        // Today's date
+        document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+        // ----- Load Customers with pagination -----
+        let allCustomers   = [];
+        let filteredCustomers = [];
+        const PAGE_SIZE    = 10;
+        let currentPage    = 1;
+
+        async function loadCustomers() {
+            try {
+                const res = await fetch('/admin/api/customers');
+                if (!res.ok) throw new Error('Failed to load customers');
+                allCustomers = await res.json();
+                filteredCustomers = allCustomers;
+                document.getElementById('totalCustomers').textContent = allCustomers.length;
+                currentPage = 1;
+                renderPage();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('customerBody').innerHTML =
+                    '<tr class="loading-row"><td colspan="6"><i class="fas fa-exclamation-circle me-1 text-danger"></i>Could not load customers</td></tr>';
+            }
+        }
+
+        function renderPage() {
+            const tbody = document.getElementById('customerBody');
+            const total = filteredCustomers.length;
+
+            if (!total) {
+                tbody.innerHTML = '<tr class="loading-row"><td colspan="6"><i class="fas fa-inbox me-2"></i>No customers found.</td></tr>';
+                document.getElementById('pageInfo').textContent = '';
+                document.getElementById('prevPage').disabled = true;
+                document.getElementById('nextPage').disabled = true;
+                return;
+            }
+
+            const totalPages = Math.ceil(total / PAGE_SIZE);
+            currentPage = Math.max(1, Math.min(currentPage, totalPages));
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageCustomers = filteredCustomers.slice(start, start + PAGE_SIZE);
+
+            // Pagination info e.g. "1–10 of 47 customers"
+            const from = start + 1;
+            const to   = Math.min(start + PAGE_SIZE, total);
+            document.getElementById('pageInfo').textContent = `${from}–${to} of ${total} customer${total !== 1 ? 's' : ''}`;
+            document.getElementById('prevPage').disabled = currentPage <= 1;
+            document.getElementById('nextPage').disabled = currentPage >= totalPages;
+
+            tbody.innerHTML = pageCustomers.map(c => {
+                const initials = ((c.fname || '?')[0] + (c.lname || '?')[0]).toUpperCase();
+                const name     = [c.fname, c.lname].filter(Boolean).join(' ') || '—';
+                const joined   = c.dob || '—';
+                const cid      = c.customerId || '';
+                return `<tr>
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle">${initials}</div>
+                            <span class="fw-semibold">${name}</span>
+                        </div>
+                    </td>
+                    <td>${c.email || '—'}</td>
+                    <td>${c.phone || '—'}</td>
+                    <td><small>${joined}</small></td>
+                    <td><span class="badge bg-success badge-custom">Active</span></td>
+                    <td class="pe-3 text-center">
+                        <a href="/admin/customer-profile/${cid}" class="btn btn-sm btn-outline-primary me-1" title="Show Profile">
+                            <i class="fas fa-user me-1"></i>Profile
+                        </a>
+                        <a href="/admin/customer-account/${cid}" class="btn btn-sm btn-outline-secondary" title="Show Account">
+                            <i class="fas fa-wallet me-1"></i>Account
+                        </a>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Pagination controls
+        document.getElementById('prevPage').addEventListener('click', () => { currentPage--; renderPage(); });
+        document.getElementById('nextPage').addEventListener('click', () => { currentPage++; renderPage(); });
+
+        // Live search — resets to page 1
+        document.getElementById('customerSearch').addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            filteredCustomers = !q ? allCustomers : allCustomers.filter(c =>
+                (c.fname  || '').toLowerCase().includes(q) ||
+                (c.lname  || '').toLowerCase().includes(q) ||
+                (c.email  || '').toLowerCase().includes(q)
+            );
+            currentPage = 1;
+            renderPage();
+        });
+
+        // ----- Load accounts stats -----
+        async function loadStats() {
+            try {
+                const [accRes, txCountRes] = await Promise.all([
+                    fetch('/admin/api/accounts'),
+                    fetch('/admin/api/transactions/count')
+                ]);
+                if (accRes.ok) {
+                    const accounts = await accRes.json();
+                    document.getElementById('totalAccounts').textContent = accounts.length;
+                    const savings = accounts.filter(a => (a.accountType || '').toUpperCase() === 'SAVINGS').length;
+                    const current = accounts.filter(a => (a.accountType || '').toUpperCase() === 'CURRENT').length;
+                    document.getElementById('savingsCount').textContent = savings;
+                    document.getElementById('currentCount').textContent = current;
+                }
+                if (txCountRes.ok) {
+                    const count = await txCountRes.json();
+                    document.getElementById('totalTransactions').textContent = count;
+                }
+            } catch (e) {
+                console.error('Stats load error:', e);
+            }
+        }
+
+        // ----- Stat card button: scroll + optional filter by account type -----
+        let accountTypeFilter = null; // 'SAVINGS' | 'CURRENT' | null
+
+        function scrollToTable(type) {
+            document.getElementById('customerTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            if (type === 'all') {
+                accountTypeFilter = null;
+                filteredCustomers = allCustomers;
+            } else {
+                accountTypeFilter = type.toUpperCase();
+                applyAccountTypeFilter();
+            }
+            currentPage = 1;
+            renderPage();
+        }
+
+        async function applyAccountTypeFilter() {
+            if (!accountTypeFilter) return;
+            try {
+                const res = await fetch('/admin/api/accounts');
+                if (!res.ok) return;
+                const accounts = await res.json();
+                const emailSet = new Set(
+                    accounts
+                        .filter(a => (a.accountType || '').toUpperCase() === accountTypeFilter)
+                        .map(a => a.createdBy || '')
+                );
+                // Match by email from customerDto inside account, or fallback: match customers who have that account type
+                // Since account DTO may not have email, use customer list and check account via separate call
+                // Simpler: filter customers whose email has a matching account type in accounts list
+                const accountEmailMap = {};
+                accounts.forEach(a => {
+                    if (a.accountType) accountEmailMap[a.adharcard] = (a.accountType || '').toUpperCase();
+                });
+                filteredCustomers = allCustomers.filter(c =>
+                    accounts.some(a => a.adharcard === c.adharcard &&
+                        (a.accountType || '').toUpperCase() === accountTypeFilter)
+                );
+                currentPage = 1;
+                renderPage();
+            } catch(e) { console.error(e); }
+        }
+
+        loadCustomers();
+        loadStats();
+    </script>
+</body>
+
+</html>

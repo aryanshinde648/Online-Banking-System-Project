@@ -16,7 +16,6 @@ public class AdminDto {
     private String fname;
     
     private String lname;
-
     
     private String email;
     

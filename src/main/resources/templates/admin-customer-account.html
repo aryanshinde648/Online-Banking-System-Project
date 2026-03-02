@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Account | Admin</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet" />
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .container-custom {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem 3rem;
+      }
+      .card-modern {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+      }
+      .account-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem 2rem 1.5rem;
+        color: white;
+      }
+      .account-header h4 {
+        font-weight: 700;
+        margin: 0 0 0.25rem;
+        font-size: 1.3rem;
+      }
+      .account-header p {
+        opacity: 0.85;
+        margin: 0;
+        font-size: 0.9rem;
+      }
+      .balance-badge {
+        background: rgba(255, 255, 255, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 12px;
+        padding: 0.9rem 1.4rem;
+        text-align: right;
+      }
+      .balance-amount {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .balance-label {
+        font-size: 0.78rem;
+        opacity: 0.8;
+      }
+      .section-body {
+        padding: 1.5rem 2rem;
+      }
+      .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.2rem;
+      }
+
+      @media (max-width: 576px) {
+        .detail-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .detail-item {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        border: 1px solid #eef2ff;
+      }
+      .detail-item .d-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.3rem;
+      }
+      .detail-item .d-value {
+        font-size: 1rem;
+        color: #1e293b;
+        font-weight: 600;
+      }
+      .badge-type {
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 0.3em 0.8em;
+      }
+      .divider {
+        border: none;
+        border-top: 1px solid #f1f5f9;
+        margin: 0;
+      }
+      .owner-section {
+        padding: 1.5rem 2rem;
+      }
+      .owner-section h6 {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 1rem;
+      }
+      .owner-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .owner-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .back-btn,
+      .btn-view-profile {
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        color: white;
+        border-radius: 8px;
+        padding: 0.45rem 1rem;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+      }
+      .back-btn:hover,
+      .btn-view-profile:hover {
+        background: rgba(255, 255, 255, 0.28);
+        color: white;
+      }
+
+      /* Transaction table */
+      .tx-section {
+        margin-top: 1.5rem;
+      }
+      .tx-header {
+        background: transparent;
+        border-bottom: 1px solid #f1f5f9;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .tx-header h6 {
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        font-size: 1rem;
+      }
+      .table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .table td {
+        vertical-align: middle;
+        color: #334155;
+        font-size: 0.875rem;
+        border-color: #f1f5f9;
+      }
+      .table tbody tr:hover {
+        background: #f8fafc;
+      }
+      .tx-credit {
+        color: #16a34a;
+        font-weight: 700;
+      }
+      .tx-debit {
+        color: #dc2626;
+        font-weight: 700;
+      }
+      .empty-tx {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: #94a3b8;
+      }
+
+      /* Filter bar */
+      .tx-filter-bar {
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+        background: #fafbff;
+      }
+      .tx-search {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.84rem;
+        color: #1e293b;
+        outline: none;
+        min-width: 200px;
+        transition: border 0.2s;
+      }
+      .tx-search:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      .tx-search::placeholder {
+        color: #94a3b8;
+      }
+      .tx-filter-label {
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+      .tx-type-pill {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.76rem;
+        font-weight: 600;
+        border: 1.5px solid #e2e8f0;
+        color: #64748b;
+        background: white;
+        cursor: pointer;
+        transition: all 0.18s;
+      }
+      .tx-type-pill:hover {
+        border-color: #667eea;
+        color: #667eea;
+        background: #f0f3ff;
+      }
+      .tx-type-pill.p-all {
+        border-color: #667eea;
+        color: #667eea;
+        background: #f0f3ff;
+      }
+      .tx-type-pill.p-deposit {
+        border-color: #16a34a;
+        color: #16a34a;
+        background: #f0fdf4;
+      }
+      .tx-type-pill.p-withdraw {
+        border-color: #dc2626;
+        color: #dc2626;
+        background: #fef2f2;
+      }
+      .tx-type-pill.p-transfer {
+        border-color: #2563eb;
+        color: #2563eb;
+        background: #eff6ff;
+      }
+      .tx-sort-sel {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.32rem 0.8rem;
+        font-size: 0.84rem;
+        color: #1e293b;
+        outline: none;
+        background: white;
+        cursor: pointer;
+        margin-left: auto;
+      }
+      .tx-sort-sel:focus {
+        border-color: #667eea;
+      }
+    </style>
+  </head>
+  <body class="has-fixed-header">
+    <div th:replace="~{headerbar-admin :: header}"></div>
+
+    <div class="container-custom">
+      <!-- Nav -->
+      <div class="mb-3 d-flex gap-2">
+        <a th:href="@{/admin/dashboard-admin}" class="back-btn"
+          ><i class="fas fa-arrow-left"></i> Dashboard</a
+        >
+        <a
+          th:href="@{'/admin/customer-profile/' + ${customer.customerId}}"
+          class="btn-view-profile"
+          ><i class="fas fa-user"></i> View Profile</a
+        >
+      </div>
+
+      <!-- Account Card -->
+      <div class="card-modern">
+        <div class="account-header">
+          <div
+            class="d-flex justify-content-between align-items-start flex-wrap gap-3"
+          >
+            <div>
+              <h4><i class="fas fa-wallet me-2"></i>Account Details</h4>
+              <p th:text="'Account #' + ${account.accountNumber}">Account #</p>
+            </div>
+            <div class="balance-badge">
+              <div class="balance-label">Current Balance</div>
+              <div class="balance-amount">
+                ₹<span th:text="${#numbers.formatDecimal(account.balance,1,2)}"
+                  >0.00</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="d-label">Account Number</div>
+              <div class="d-value" th:text="${account.accountNumber}">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="d-label">Account Type</div>
+              <div class="d-value">
+                <span
+                  class="badge badge-type"
+                  th:classappend="${account.accountType?.name()=='SAVINGS'} ? 'bg-success' : 'bg-primary'"
+                  th:text="${account.accountType}"
+                  >—</span
+                >
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="d-label">Branch</div>
+              <div class="d-value" th:text="${account.branch ?: '—'}">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="d-label">IFSC Code</div>
+              <div class="d-value" th:text="${account.ifsc ?: '—'}">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="d-label">Aadhaar Linked</div>
+              <div class="d-value" th:text="${account.adharcard ?: '—'}">—</div>
+            </div>
+            <div class="detail-item">
+              <div class="d-label">Account ID</div>
+              <div class="d-value" th:text="${account.accountId}">—</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="owner-section">
+          <h6><i class="fas fa-user-circle me-1"></i>Account Owner</h6>
+          <div class="owner-row">
+            <div class="owner-avatar">
+              <span
+                th:text="${#strings.substring(customer.fname,0,1)+#strings.substring(customer.lname,0,1)}"
+                >??</span
+              >
+            </div>
+            <div>
+              <div
+                class="fw-bold"
+                style="color: #1e293b"
+                th:text="${customer.fname+' '+customer.lname}"
+              >
+                Name
+              </div>
+              <div
+                class="text-muted"
+                style="font-size: 0.85rem"
+                th:text="${customer.email}"
+              >
+                email
+              </div>
+              <div
+                class="text-muted"
+                style="font-size: 0.85rem"
+                th:text="${customer.phone?:''}"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="card-modern tx-section">
+        <div class="tx-header">
+          <h6>
+            <i class="fas fa-history text-primary me-2"></i>Transaction History
+            <span
+              id="txPageInfo"
+              class="ms-2 fw-normal text-muted"
+              style="font-size: 0.8rem"
+            ></span>
+          </h6>
+          <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-sm btn-outline-secondary" id="txPrev">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="txNext">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="tx-filter-bar">
+          <input
+            type="text"
+            id="txSearch"
+            class="tx-search"
+            placeholder="🔍  Search by amount, remark, ID…"
+            oninput="applyTxFilters()"
+          />
+          <span class="tx-filter-label ms-1">Filter:</span>
+          <button
+            class="tx-type-pill p-all"
+            data-type="all"
+            onclick="setTxType(this, 'all')"
+          >
+            All
+          </button>
+          <button
+            class="tx-type-pill"
+            data-type="DEPOSIT"
+            onclick="setTxType(this, 'DEPOSIT')"
+          >
+            <i
+              class="fas fa-arrow-down me-1"
+              style="color: #16a34a; font-size: 0.68rem"
+            ></i
+            >Deposit
+          </button>
+          <button
+            class="tx-type-pill"
+            data-type="WITHDRAW"
+            onclick="setTxType(this, 'WITHDRAW')"
+          >
+            <i
+              class="fas fa-arrow-up me-1"
+              style="color: #dc2626; font-size: 0.68rem"
+            ></i
+            >Withdraw
+          </button>
+          <button
+            class="tx-type-pill"
+            data-type="TRANSFER"
+            onclick="setTxType(this, 'TRANSFER')"
+          >
+            <i
+              class="fas fa-exchange-alt me-1"
+              style="color: #2563eb; font-size: 0.68rem"
+            ></i
+            >Transfer
+          </button>
+          <span class="tx-filter-label ms-2">Sort:</span>
+          <select class="tx-sort-sel" id="txSort" onchange="applyTxFilters()">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="amount-desc">Amount ↓</option>
+            <option value="amount-asc">Amount ↑</option>
+          </select>
+        </div>
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th class="ps-3">Txn ID</th>
+                <th>Date &amp; Time</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Remaining Balance</th>
+                <th>Reference</th>
+                <th class="pe-3">Counterparty</th>
+              </tr>
+            </thead>
+            <tbody id="txBody">
+              <tr>
+                <td colspan="7" class="empty-tx">
+                  <i class="fas fa-spinner fa-spin me-2"></i>Loading…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Hidden transaction data injected by Thymeleaf -->
+      <div id="txData" style="display: none">
+        <span
+          th:each="t : ${transactions}"
+          th:attr="
+                    data-id=${t.transactionId},
+                    data-type=${t.type},
+                    data-amount=${t.amount},
+                    data-balance=${t.remainingBalance},
+                    data-date=${t.date},
+                    data-remark=${t.remark},
+                    data-sender-name=${t.senderName},
+                    data-receiver-name=${t.receiverName},
+                    data-sender-id=${t.senderAccountId},
+                    data-receiver-id=${t.receiverAccountId}"
+        >
+        </span>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // --- Collect transactions ---
+      const allTxData = Array.from(
+        document.querySelectorAll("#txData span"),
+      ).map((el) => ({
+        id: el.dataset.id || "",
+        type: el.dataset.type || "",
+        amount: el.dataset.amount || "0",
+        balance: el.dataset.balance || "0",
+        date: el.dataset.date || "",
+        remark: el.dataset.remark || "—",
+        senderName: el.dataset.senderName || "",
+        receiverName: el.dataset.receiverName || "",
+        senderId: el.dataset.senderId || "",
+        receiverId: el.dataset.receiverId || "",
+      }));
+
+      const PAGE = 10;
+      let page = 1;
+      let filtered = [...allTxData];
+      let activeTxType = "all";
+
+      function fmtDate(raw) {
+        if (!raw) return { date: "—", time: "" };
+        try {
+          const d = new Date(raw);
+          return {
+            date: d.toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+            time: d.toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+          };
+        } catch {
+          return { date: raw, time: "" };
+        }
+      }
+
+      function setTxType(btn, type) {
+        document
+          .querySelectorAll(".tx-type-pill")
+          .forEach((b) =>
+            b.classList.remove(
+              "p-all",
+              "p-deposit",
+              "p-withdraw",
+              "p-transfer",
+            ),
+          );
+        const cls =
+          type === "all"
+            ? "p-all"
+            : type === "DEPOSIT"
+              ? "p-deposit"
+              : type === "WITHDRAW"
+                ? "p-withdraw"
+                : "p-transfer";
+        btn.classList.add(cls);
+        activeTxType = type;
+        page = 1;
+        applyTxFilters();
+      }
+
+      function applyTxFilters() {
+        const q = (document.getElementById("txSearch").value || "")
+          .toLowerCase()
+          .trim();
+        const sort = document.getElementById("txSort").value;
+
+        let result =
+          activeTxType === "all"
+            ? [...allTxData]
+            : allTxData.filter((t) => t.type === activeTxType);
+
+        if (q)
+          result = result.filter(
+            (t) =>
+              t.type.toLowerCase().includes(q) ||
+              t.remark.toLowerCase().includes(q) ||
+              t.amount.includes(q) ||
+              t.id.toString().includes(q) ||
+              (t.senderName || "").toLowerCase().includes(q) ||
+              (t.receiverName || "").toLowerCase().includes(q),
+          );
+
+        result.sort((a, b) => {
+          if (sort === "date-asc") return new Date(a.date) - new Date(b.date);
+          if (sort === "date-desc") return new Date(b.date) - new Date(a.date);
+          if (sort === "amount-asc")
+            return parseFloat(a.amount) - parseFloat(b.amount);
+          if (sort === "amount-desc")
+            return parseFloat(b.amount) - parseFloat(a.amount);
+          return 0;
+        });
+
+        filtered = result;
+        page = 1;
+        renderTx();
+      }
+
+      function renderTx() {
+        const tbody = document.getElementById("txBody");
+        const total = filtered.length;
+
+        if (!total) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" class="empty-tx"><i class="fas fa-inbox me-2"></i>No transactions match your filters.</td></tr>';
+          document.getElementById("txPageInfo").textContent = "";
+          document.getElementById("txPrev").disabled = true;
+          document.getElementById("txNext").disabled = true;
+          return;
+        }
+
+        const totalPages = Math.ceil(total / PAGE);
+        page = Math.max(1, Math.min(page, totalPages));
+        const start = (page - 1) * PAGE;
+        const slice = filtered.slice(start, start + PAGE);
+
+        const from = start + 1,
+          to = Math.min(start + PAGE, total);
+        document.getElementById("txPageInfo").textContent =
+          `${from}–${to} of ${total}`;
+        document.getElementById("txPrev").disabled = page <= 1;
+        document.getElementById("txNext").disabled = page >= totalPages;
+
+        tbody.innerHTML = slice
+          .map((t) => {
+            const amt = parseFloat(t.amount || 0);
+            const bal = parseFloat(t.balance || 0);
+            const { date, time } = fmtDate(t.date);
+
+            let badgeCls, badgeLabel, prefix, amtCls;
+            if (t.type === "TRANSFER") {
+              const isSent = t.senderName === "Self";
+              badgeLabel = isSent ? "SENT" : "RECEIVED";
+              badgeCls = isSent ? "bg-warning text-dark" : "bg-primary";
+              prefix = isSent ? "−" : "+";
+              amtCls = isSent ? "tx-debit" : "tx-credit";
+            } else {
+              const isDebit = t.type === "WITHDRAW" || t.type === "DEBIT";
+              badgeLabel = t.type || "—";
+              badgeCls = isDebit ? "bg-danger" : "bg-success";
+              prefix = isDebit ? "−" : "+";
+              amtCls = isDebit ? "tx-debit" : "tx-credit";
+            }
+
+            const isDebitRow = prefix === "−";
+            const party = isDebitRow
+              ? `<small class="text-muted d-block" style="font-size:.7rem;">Sent To</small><strong>${t.receiverName || t.receiverId || "—"}</strong>`
+              : `<small class="text-muted d-block" style="font-size:.7rem;">Received From</small><strong>${t.senderName || t.senderId || "—"}</strong>`;
+
+            return `<tr>
+                    <td class="ps-3"><small class="text-muted">#${t.id || "—"}</small></td>
+                    <td>${date}<br><small class="text-muted">${time}</small></td>
+                    <td><span class="badge ${badgeCls}">${badgeLabel}</span></td>
+                    <td class="${amtCls}">${prefix}₹${amt.toFixed(2)}</td>
+                    <td>₹${bal.toFixed(2)}</td>
+                    <td><small>${t.remark}</small></td>
+                    <td class="pe-3">${party}</td>
+                </tr>`;
+          })
+          .join("");
+      }
+
+      document.getElementById("txPrev").addEventListener("click", () => {
+        page--;
+        renderTx();
+      });
+      document.getElementById("txNext").addEventListener("click", () => {
+        page++;
+        renderTx();
+      });
+
+      applyTxFilters();
+    </script>
+  </body>
+</html>

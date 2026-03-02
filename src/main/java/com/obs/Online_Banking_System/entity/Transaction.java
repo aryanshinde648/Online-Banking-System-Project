@@ -25,7 +25,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -47,11 +47,17 @@ public class Transaction {
     @Column(name = "remaining_balance", nullable = false)
     private BigDecimal remainingBalance;
 
-    //Many transactions to(in) One Account
-    @ManyToOne     
+    // Many transactions to(in) One Account
+    @ManyToOne
     @JoinColumn(name = "account_id")
     private Account account;
 
     // For transfer
     private Long targetAccountNumber;
+
+    @Column(name = "sender_account_id")
+    private Long senderAccountId;
+
+    @Column(name = "receiver_account_id")
+    private Long receiverAccountId;
 }
