@@ -205,5 +205,11 @@ public class CustomerServiceImpl implements CustomerService {
         List<CustomerDto> custList = customerConversion.toCustomerDtoList(cust);
         return custList;
     }
+
+    @Override
+    public Long getAllCustomerCount() {
+        return customerRepository.count();
+    }
+
     
 }

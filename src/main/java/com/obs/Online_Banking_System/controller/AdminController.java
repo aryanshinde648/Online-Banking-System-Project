@@ -20,8 +20,8 @@ import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.AdminDto;
 import com.obs.Online_Banking_System.dto.CustomerDto;
+import com.obs.Online_Banking_System.dto.TransactionDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
-import com.obs.Online_Banking_System.repository.TransactionRepository;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.AdminService;
 import com.obs.Online_Banking_System.service.CustomerService;
@@ -51,9 +51,6 @@ public class AdminController {
 
     @Autowired
     private TransactionService transactionService;
-
-    @Autowired
-    private TransactionRepository transactionRepository;
 
     @GetMapping("/demo")
     public ResponseEntity<String> demo() {
@@ -199,7 +196,7 @@ public class AdminController {
     @GetMapping("/api/transactions/count")
     @ResponseBody
     public ResponseEntity<Long> getTotalTransactionCount(HttpSession session) {
-        return ResponseEntity.ok(transactionRepository.count());
+        return ResponseEntity.ok(transactionService.getAllTransactionsCount());
     }
 
     /** Admin: All accounts page (optional ?type=SAVINGS or ?type=CURRENT) */
@@ -224,6 +221,11 @@ public class AdminController {
         return "admin-all-accounts";
     }
 
+    @GetMapping("/api/customers/count")
+    public ResponseEntity<Long> getTotalCustomerCount(HttpSession session) {
+        return ResponseEntity.ok(customerService.getAllCustomerCount());
+    }
+
     /** Admin: All transactions page */
     @GetMapping("/all-transactions")
     public String allTransactions(HttpSession session,
@@ -233,10 +235,8 @@ public class AdminController {
             ra.addFlashAttribute("errorMessage", "Please login first");
             return "redirect:/login-admin";
         }
-        List<com.obs.Online_Banking_System.entity.Transaction> txList = transactionRepository.findAll(
-                org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.DESC, "timestamp"));
-        model.addAttribute("transactions", txList);
+        List<TransactionDto> trxList = transactionService.findAllTransactions();
+        model.addAttribute("transactions", trxList);
         return "admin-all-transactions";
     }
 
