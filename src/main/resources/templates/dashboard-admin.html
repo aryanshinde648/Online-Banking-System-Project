@@ -337,7 +337,7 @@
             <div class="stat-label">Total Customers</div>
             <button
               class="stat-card-btn"
-              onclick="window.location = '/admin/dashboard-admin'"
+              onclick="window.location = '/admin/all-customers'"
             >
               <i class="fas fa-users me-1"></i>View All
             </button>
@@ -779,6 +779,10 @@
 
       loadCustomers();
       loadStats();
+      setInterval(() => {
+        loadCustomers();
+        loadStats();
+      }, 10000); // Poll every 10 seconds
     </script>
   </body>
 </html>
