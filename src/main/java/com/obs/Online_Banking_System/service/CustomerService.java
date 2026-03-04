@@ -31,4 +31,6 @@ public interface CustomerService {
 
     List<CustomerDto> getAllCustomers();
 
+    Long getAllCustomerCount();
+
 }

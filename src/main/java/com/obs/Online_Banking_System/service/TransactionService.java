@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
+import com.obs.Online_Banking_System.dto.TransactionDto;
 import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
 
@@ -20,4 +21,7 @@ public interface TransactionService {
 
     String saveInitialDepositTransaction(AccountCreateDto accountCreateDto, AccountDto accountDto, String email);
     
+    Long getAllTransactionsCount();
+
+    List<TransactionDto> findAllTransactions();
 }

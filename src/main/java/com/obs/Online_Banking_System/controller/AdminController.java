@@ -20,8 +20,9 @@ import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.AdminDto;
 import com.obs.Online_Banking_System.dto.CustomerDto;
+import com.obs.Online_Banking_System.dto.TransactionDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
-import com.obs.Online_Banking_System.repository.TransactionRepository;
+import com.obs.Online_Banking_System.enumDto.AdminRole;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.AdminService;
 import com.obs.Online_Banking_System.service.CustomerService;
@@ -52,8 +53,60 @@ public class AdminController {
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    // ── Role helpers ─────────────────────────────────────────────────────────
+
+    /** ALL roles can register customers */
+    private boolean canRegisterCustomer(HttpSession session) {
+        String r = (String) session.getAttribute("adminRole");
+        return "MANAGER".equals(r) || "ADMINISTRATIVE".equals(r) || "DIRECTOR".equals(r);
+    }
+
+    /**
+     * ADMINISTRATIVE or DIRECTOR can manage other admins (register/update/delete)
+     */
+    private boolean isAdministrative(HttpSession session) {
+        String r = (String) session.getAttribute("adminRole");
+        return "ADMINISTRATIVE".equals(r) || "DIRECTOR".equals(r);
+    }
+
+    private boolean isDirector(HttpSession session) {
+        return "DIRECTOR".equals(session.getAttribute("adminRole"));
+    }
+
+    /**
+     * Helper to check if the current admin's role is allowed to manage the target
+     * role.
+     * Directors can manage Administrative and Manager.
+     * Administrative can manage Manager.
+     */
+    private boolean canManageRole(String myRole, AdminRole targetRole) {
+        if (myRole == null || targetRole == null)
+            return false;
+        if ("DIRECTOR".equals(myRole)) {
+            return targetRole == AdminRole.ADMINISTRATIVE || targetRole == AdminRole.MANAGER;
+        } else if ("ADMINISTRATIVE".equals(myRole)) {
+            return targetRole == AdminRole.MANAGER;
+        }
+        return false;
+    }
+
+    private boolean isLoggedIn(HttpSession session) {
+        return session.getAttribute("loggedInAdmin") != null;
+    }
+
+    /**
+     * Returns the AdminRole values this session's admin is allowed to assign when
+     * registering
+     */
+    private java.util.List<AdminRole> allowedRolesToCreate(HttpSession session) {
+        String r = (String) session.getAttribute("adminRole");
+        if ("DIRECTOR".equals(r)) {
+            return java.util.List.of(AdminRole.MANAGER, AdminRole.ADMINISTRATIVE, AdminRole.DIRECTOR);
+        } else if ("ADMINISTRATIVE".equals(r)) {
+            return java.util.List.of(AdminRole.MANAGER);
+        }
+        return java.util.Collections.emptyList();
+    }
 
     @GetMapping("/demo")
     public ResponseEntity<String> demo() {
@@ -73,7 +126,9 @@ public class AdminController {
     }
 
     @GetMapping("/registerCustomer")
-    public ResponseEntity<CustomerDto> registerCustomer(@RequestBody CustomerDto customerDto) {
+    public ResponseEntity<CustomerDto> registerCustomer(@RequestBody CustomerDto customerDto, HttpSession session) {
+        if (!canRegisterCustomer(session))
+            return ResponseEntity.status(403).build();
         CustomerDto cust = customerService.registerCustomer(customerDto);
         return ResponseEntity.ok(cust);
     }
@@ -97,33 +152,68 @@ public class AdminController {
     }
 
     @PostMapping("/createAccount")
-    public ResponseEntity<AccountDto> createAccount(@RequestBody AccountCreateDto account) {
+    public ResponseEntity<AccountDto> createAccount(@RequestBody AccountCreateDto account, HttpSession session) {
+        if (!canRegisterCustomer(session))
+            return ResponseEntity.status(403).build();
         return ResponseEntity.ok(accountService.createAccount(account));
     }
 
-    // ---- Page routes ----
+    // ---- Admin registration page (role-restricted, session-gated) ----
 
-    /** Serve the admin registration page */
+    /**
+     * GET /admin/register-admin
+     * Director → can register MANAGER, ADMINISTRATIVE, DIRECTOR
+     * Administrative → can register MANAGER only
+     * Manager → no access (redirect to dashboard)
+     */
     @GetMapping("/register-admin")
-    public String showRegisterAdminPage(Model model) {
+    public String showRegisterAdminPage(HttpSession session, Model model, RedirectAttributes ra) {
+        if (!isLoggedIn(session))
+            return "redirect:/login-admin";
+        java.util.List<AdminRole> allowed = allowedRolesToCreate(session);
+        if (allowed.isEmpty()) {
+            ra.addFlashAttribute("errorMessage", "You do not have permission to register admins.");
+            return "redirect:/admin/dashboard-admin";
+        }
         model.addAttribute("admin", new AdminDto());
+        model.addAttribute("allowedRoles", allowed);
         return "register-admin";
     }
 
-    /** Handle admin registration form submission */
+    /**
+     * POST /admin/register-admin — validates submitted role is within caller's
+     * allowed set
+     */
     @PostMapping("/register-admin")
     public String handleRegisterAdmin(
             @ModelAttribute("admin") AdminDto adminDto,
-            Model model) {
+            HttpSession session,
+            Model model,
+            RedirectAttributes ra) {
+        if (!isLoggedIn(session))
+            return "redirect:/login-admin";
+        java.util.List<AdminRole> allowed = allowedRolesToCreate(session);
+        if (allowed.isEmpty()) {
+            ra.addFlashAttribute("errorMessage", "You do not have permission to register admins.");
+            return "redirect:/admin/dashboard-admin";
+        }
+        // Privilege-escalation guard: submitted role must be in allowed set
+        if (adminDto.getAdminRole() == null || !allowed.contains(adminDto.getAdminRole())) {
+            model.addAttribute("error", "Invalid role selection.");
+            model.addAttribute("admin", adminDto);
+            model.addAttribute("allowedRoles", allowed);
+            return "register-admin";
+        }
         try {
             adminService.register(adminDto);
-            model.addAttribute("success", "Admin account created successfully! You can now log in.");
+            model.addAttribute("success", "Admin account created successfully!");
             model.addAttribute("admin", new AdminDto());
         } catch (Exception e) {
             model.addAttribute("error",
                     e.getMessage() != null ? e.getMessage() : "Registration failed. Please try again.");
             model.addAttribute("admin", adminDto);
         }
+        model.addAttribute("allowedRoles", allowed);
         return "register-admin";
     }
 
@@ -156,6 +246,7 @@ public class AdminController {
         session.setAttribute("adminId", adminDto.getAdminId());
         session.setAttribute("email", adminDto.getEmail());
         session.setAttribute("adharcard", adminDto.getAdharcard());
+        session.setAttribute("adminRole", adminDto.getAdminRole() != null ? adminDto.getAdminRole().name() : "MANAGER");
 
         // wait for 10 seconds before redirecting to dashboard
         model.addAttribute("success", "Login successful");
@@ -199,7 +290,47 @@ public class AdminController {
     @GetMapping("/api/transactions/count")
     @ResponseBody
     public ResponseEntity<Long> getTotalTransactionCount(HttpSession session) {
-        return ResponseEntity.ok(transactionRepository.count());
+        return ResponseEntity.ok(transactionService.getAllTransactionsCount());
+    }
+
+    /** Admin: all transactions API for AJAX datatables */
+    @GetMapping("/api/transactions")
+    @ResponseBody
+    public ResponseEntity<List<TransactionDto>> getAllTransactionsAPI(HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(transactionService.findAllTransactions());
+    }
+
+    /** Admin: get all admins API for Manage Admins page */
+    @GetMapping("/api/admins")
+    @ResponseBody
+    public ResponseEntity<List<AdminDto>> getAllAdminsAPI(HttpSession session) {
+        if (!isAdministrative(session))
+            return ResponseEntity.status(403).build();
+
+        String myRole = (String) session.getAttribute("adminRole");
+        Long loggedInAdminId = (Long) session.getAttribute("adminId");
+
+        List<AdminDto> allAdmins = adminService.getAllAdmins();
+        List<AdminDto> managedAdmins = allAdmins.stream()
+                .filter(a -> !a.getAdminId().equals(loggedInAdminId) && canManageRole(myRole, a.getAdminRole()))
+                .toList();
+        return ResponseEntity.ok(managedAdmins);
+    }
+
+    /** Admin: get all customer transactions for account profile */
+    @GetMapping("/api/customer-transactions/{email}")
+    @ResponseBody
+    public ResponseEntity<List<TransactionResponseDto>> getCustomerTransactionsAPI(@PathVariable String email,
+            HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+        try {
+            return ResponseEntity.ok(transactionService.getAllTransactions(email));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
     /** Admin: All accounts page (optional ?type=SAVINGS or ?type=CURRENT) */
@@ -224,6 +355,11 @@ public class AdminController {
         return "admin-all-accounts";
     }
 
+    @GetMapping("/api/customers/count")
+    public ResponseEntity<Long> getTotalCustomerCount(HttpSession session) {
+        return ResponseEntity.ok(customerService.getAllCustomerCount());
+    }
+
     /** Admin: All transactions page */
     @GetMapping("/all-transactions")
     public String allTransactions(HttpSession session,
@@ -233,11 +369,19 @@ public class AdminController {
             ra.addFlashAttribute("errorMessage", "Please login first");
             return "redirect:/login-admin";
         }
-        List<com.obs.Online_Banking_System.entity.Transaction> txList = transactionRepository.findAll(
-                org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.DESC, "timestamp"));
-        model.addAttribute("transactions", txList);
+        // Data loaded via AJAX
         return "admin-all-transactions";
+    }
+
+    /** Admin: All customers page */
+    @GetMapping("/all-customers")
+    public String allCustomers(HttpSession session,
+            RedirectAttributes ra) {
+        if (session.getAttribute("loggedInAdmin") == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first");
+            return "redirect:/login-admin";
+        }
+        return "admin-all-customers";
     }
 
     /** Admin: view a specific customer's profile */
@@ -280,8 +424,175 @@ public class AdminController {
             return "admin-customer-account";
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "Account not found for this customer");
+            ra.addFlashAttribute("errorMessage", "Account not found for this customer");
             return "redirect:/admin/dashboard-admin";
         }
+    }
+
+    // ── Admin Management (ADMINISTRATIVE-only) ─────────────────────────────────
+
+    /** View all MANAGER accounts */
+    @GetMapping("/manage-admins")
+    public String manageAdmins(HttpSession session, Model model, RedirectAttributes ra) {
+        if (!isLoggedIn(session))
+            return "redirect:/login-admin";
+        if (!isAdministrative(session)) {
+            ra.addFlashAttribute("errorMessage", "Access denied. Administrative role required.");
+            return "redirect:/admin/dashboard-admin";
+        }
+
+        // Fetch all admins and filter by who this admin can manage
+        Long loggedInAdminId = (Long) session.getAttribute("adminId");
+        String myRole = (String) session.getAttribute("adminRole");
+
+        List<AdminDto> allAdmins = adminService.getAllAdmins();
+        List<AdminDto> managedAdmins = allAdmins.stream()
+                .filter(a -> !a.getAdminId().equals(loggedInAdminId) && canManageRole(myRole, a.getAdminRole()))
+                .toList();
+
+        model.addAttribute("managers", managedAdmins);
+        return "admin-manage-admins";
+    }
+
+    /** Update an admin (name, email, phone, role, password) */
+    @PostMapping("/update-admin/{id}")
+    public String updateAdminById(@PathVariable Long id,
+            @ModelAttribute AdminDto adminDto,
+            HttpSession session,
+            RedirectAttributes ra) {
+        if (!isLoggedIn(session))
+            return "redirect:/login-admin";
+        if (!isAdministrative(session)) {
+            ra.addFlashAttribute("errorMessage", "Access denied.");
+            return "redirect:/admin/dashboard-admin";
+        }
+
+        try {
+            AdminDto targetAdmin = adminService.getAdminById(id).getBody();
+            if (targetAdmin != null
+                    && !canManageRole((String) session.getAttribute("adminRole"), targetAdmin.getAdminRole())) {
+                ra.addFlashAttribute("errorMessage", "Access denied. You cannot manage this role.");
+                return "redirect:/admin/manage-admins";
+            }
+
+            adminService.fullUpdateAdmin(id, adminDto);
+            ra.addFlashAttribute("successMessage", "Admin updated successfully.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "Update failed: " + e.getMessage());
+        }
+        return "redirect:/admin/manage-admins";
+    }
+
+    /** Delete an admin account */
+    @PostMapping("/delete-admin/{id}")
+    public String deleteAdminById(@PathVariable Long id,
+            HttpSession session,
+            RedirectAttributes ra) {
+        if (!isLoggedIn(session))
+            return "redirect:/login-admin";
+        if (!isAdministrative(session)) {
+            ra.addFlashAttribute("errorMessage", "Access denied.");
+            return "redirect:/admin/dashboard-admin";
+        }
+
+        try {
+            AdminDto targetAdmin = adminService.getAdminById(id).getBody();
+            if (targetAdmin != null
+                    && !canManageRole((String) session.getAttribute("adminRole"), targetAdmin.getAdminRole())) {
+                ra.addFlashAttribute("errorMessage", "Access denied. You cannot delete this role.");
+                return "redirect:/admin/manage-admins";
+            }
+
+            adminService.deleteAdmin(id);
+            ra.addFlashAttribute("successMessage", "Admin deleted successfully.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "Delete failed: " + e.getMessage());
+        }
+        return "redirect:/admin/manage-admins";
+    }
+
+    /** API: get one admin by ID (for edit modal form) */
+    @GetMapping("/api/admin/{id}")
+    @ResponseBody
+    public ResponseEntity<AdminDto> getAdminById(@PathVariable Long id, HttpSession session) {
+        if (!isAdministrative(session))
+            return ResponseEntity.status(403).build();
+
+        ResponseEntity<AdminDto> response = adminService.getAdminById(id);
+        AdminDto targetAdmin = response.getBody();
+        if (targetAdmin != null
+                && !canManageRole((String) session.getAttribute("adminRole"), targetAdmin.getAdminRole())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return response;
+    }
+
+    /** GET /admin/profile – show the profile of the currently logged-in admin */
+    @GetMapping("/profile")
+    public String adminProfile(HttpSession session, Model model, RedirectAttributes ra) {
+        if (!isLoggedIn(session)) {
+            ra.addFlashAttribute("errorMessage", "Please login to view your profile.");
+            return "redirect:/login-admin";
+        }
+        AdminDto admin = (AdminDto) session.getAttribute("loggedInAdmin");
+        model.addAttribute("admin", admin);
+        return "admin-profile";
+    }
+
+    /** GET /admin/profile/{id} – show the profile of a specific admin */
+    @GetMapping("/profile/{id}")
+    public String viewAdminProfile(@PathVariable Long id, HttpSession session, Model model, RedirectAttributes ra) {
+        if (!isLoggedIn(session)) {
+            ra.addFlashAttribute("errorMessage", "Please login to view profiles.");
+            return "redirect:/login-admin";
+        }
+        if (!isAdministrative(session)) {
+            ra.addFlashAttribute("errorMessage", "Access denied. Administrative role required.");
+            return "redirect:/admin/dashboard-admin";
+        }
+        try {
+            AdminDto admin = adminService.getAdminById(id).getBody();
+            if (admin != null && !canManageRole((String) session.getAttribute("adminRole"), admin.getAdminRole())) {
+                ra.addFlashAttribute("errorMessage", "Access denied. You cannot view this profile.");
+                return "redirect:/admin/manage-admins";
+            }
+
+            model.addAttribute("admin", admin);
+            // Flag to conditionally hide the "Edit Profile" button if viewing someone else
+            model.addAttribute("isOwnProfile", false);
+            return "admin-profile";
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "Admin not found.");
+            return "redirect:/admin/manage-admins";
+        }
+    }
+
+    /**
+     * POST /admin/update-profile – updates the currently logged-in admin's profile
+     */
+    @PostMapping("/update-profile")
+    public String updateProfile(@ModelAttribute AdminDto adminDto, HttpSession session, RedirectAttributes ra) {
+        if (!isLoggedIn(session)) {
+            ra.addFlashAttribute("errorMessage", "Please login to update your profile.");
+            return "redirect:/login-admin";
+        }
+
+        try {
+            Long adminId = (Long) session.getAttribute("adminId");
+            // Perform the update using the existing method
+            AdminDto updatedAdmin = adminService.fullUpdateAdmin(adminId, adminDto);
+
+            // Update the session attributes with the new details
+            session.setAttribute("loggedInAdmin", updatedAdmin);
+            session.setAttribute("email", updatedAdmin.getEmail());
+
+            ra.addFlashAttribute("successMessage", "Profile updated successfully.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "Failed to update profile: " + e.getMessage());
+        }
+
+        return "redirect:/admin/profile";
     }
 
 }

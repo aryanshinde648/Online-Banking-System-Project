@@ -504,7 +504,7 @@
                 >
                   <small class="text-muted"
                     ><i class="fas fa-sync-alt me-1"></i>Auto-refresh
-                    (30s)</small
+                    (10s)</small
                   >
                   <small
                     id="refreshIndicator"
@@ -836,11 +836,14 @@
             acc.accountType || "-";
 
           // createdAt is an Instant → ISO string like "2026-02-27T..."
-          if (acc.createdAt) {
-            const { date } = fmtDate(acc.createdAt);
-            document.getElementById("accCreated").textContent = date;
-          } else {
-            document.getElementById("accCreated").textContent = "-";
+          const createdEl = document.getElementById("accCreated");
+          if (createdEl) {
+            if (acc.createdAt) {
+              const { date } = fmtDate(acc.createdAt);
+              createdEl.textContent = date;
+            } else {
+              createdEl.textContent = "-";
+            }
           }
 
           // Update last-refreshed indicator
@@ -861,7 +864,7 @@
 
       function startAutoRefresh() {
         stopAutoRefresh();
-        refreshTimer = setInterval(() => loadAccount(true), 30000); // every 30s
+        refreshTimer = setInterval(() => loadAccount(true), 10000); // every 10s
       }
 
       function stopAutoRefresh() {

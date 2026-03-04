@@ -1,269 +1,533 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>All Transactions | Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link th:href="@{/css/headerbar.css}" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet" />
     <style>
-        body { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
-        .container-custom { max-width:1300px; margin:2rem auto; padding:0 1rem 3rem; }
-        .page-card { background:white; border-radius:18px; box-shadow:0 12px 32px rgba(0,0,0,.15); overflow:hidden; }
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .container-custom {
+        max-width: 1300px;
+        margin: 2rem auto;
+        padding: 0 1rem 3rem;
+      }
+      .page-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+      }
 
-        /* Header */
-        .page-header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); padding:1.8rem 2rem; color:white; }
-        .page-header h4 { font-weight:700; margin:0; font-size:1.25rem; }
-        .page-header .sub { font-size:.85rem; opacity:.8; margin-top:.2rem; }
+      /* Header */
+      .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.8rem 2rem;
+        color: white;
+      }
+      .page-header h4 {
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .page-header .sub {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-top: 0.2rem;
+      }
 
-        /* Filter bar */
-        .filter-bar { padding:1rem 1.5rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; flex-wrap:wrap; gap:.75rem; background:#fafbff; }
-        .search-input { border:1.5px solid #e2e8f0; border-radius:10px; padding:.4rem .85rem; font-size:.875rem; color:#1e293b; outline:none; min-width:220px; transition:border .2s; }
-        .search-input:focus { border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,.12); }
-        .search-input::placeholder { color:#94a3b8; }
-        .type-pills { display:flex; gap:.4rem; flex-wrap:wrap; }
-        .type-pill { padding:.28rem .8rem; border-radius:20px; font-size:.78rem; font-weight:600; border:1.5px solid #e2e8f0; color:#64748b; background:white; cursor:pointer; transition:all .18s; }
-        .type-pill.active,
-        .type-pill:hover  { border-color:#667eea; color:#667eea; background:#f0f3ff; }
-        .type-pill.active-deposit  { border-color:#16a34a; color:#16a34a; background:#f0fdf4; }
-        .type-pill.active-withdraw { border-color:#dc2626; color:#dc2626; background:#fef2f2; }
-        .type-pill.active-transfer { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
-        .sort-select { border:1.5px solid #e2e8f0; border-radius:10px; padding:.4rem .85rem; font-size:.875rem; color:#1e293b; outline:none; background:white; cursor:pointer; }
-        .sort-select:focus { border-color:#667eea; }
-        .filter-label { font-size:.78rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.04em; }
+      /* Filter bar */
+      .filter-bar {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        background: #fafbff;
+      }
+      .search-input {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.875rem;
+        color: #1e293b;
+        outline: none;
+        min-width: 220px;
+        transition: border 0.2s;
+      }
+      .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+      }
+      .search-input::placeholder {
+        color: #94a3b8;
+      }
+      .type-pills {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .type-pill {
+        padding: 0.28rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1.5px solid #e2e8f0;
+        color: #64748b;
+        background: white;
+        cursor: pointer;
+        transition: all 0.18s;
+      }
+      .type-pill.active,
+      .type-pill:hover {
+        border-color: #667eea;
+        color: #667eea;
+        background: #f0f3ff;
+      }
+      .type-pill.active-deposit {
+        border-color: #16a34a;
+        color: #16a34a;
+        background: #f0fdf4;
+      }
+      .type-pill.active-withdraw {
+        border-color: #dc2626;
+        color: #dc2626;
+        background: #fef2f2;
+      }
+      .type-pill.active-transfer {
+        border-color: #2563eb;
+        color: #2563eb;
+        background: #eff6ff;
+      }
+      .sort-select {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.4rem 0.85rem;
+        font-size: 0.875rem;
+        color: #1e293b;
+        outline: none;
+        background: white;
+        cursor: pointer;
+      }
+      .sort-select:focus {
+        border-color: #667eea;
+      }
+      .filter-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-        /* Table */
-        .table th { background:#f8fafc; color:#475569; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; border-bottom:2px solid #e2e8f0; white-space:nowrap; }
-        .table td { vertical-align:middle; color:#334155; font-size:.875rem; border-color:#f1f5f9; }
-        .table tbody tr:hover { background:#f8fafc; }
-        .tx-credit { color:#16a34a; font-weight:700; }
-        .tx-debit  { color:#dc2626; font-weight:700; }
+      /* Table */
+      .table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+      }
+      .table td {
+        vertical-align: middle;
+        color: #334155;
+        font-size: 0.875rem;
+        border-color: #f1f5f9;
+      }
+      .table tbody tr:hover {
+        background: #f8fafc;
+      }
+      .tx-credit {
+        color: #16a34a;
+        font-weight: 700;
+      }
+      .tx-debit {
+        color: #dc2626;
+        font-weight: 700;
+      }
 
-        /* Pagination */
-        .pagination-bar { display:flex; align-items:center; justify-content:space-between; padding:.9rem 1.5rem; border-top:1px solid #f1f5f9; flex-wrap:wrap; gap:.75rem; }
-        .page-count { font-size:.82rem; color:#94a3b8; }
-        .page-nav { display:flex; align-items:center; gap:.5rem; }
-        #pageInfo { font-size:.82rem; color:#64748b; min-width:90px; text-align:center; }
-        .empty-state { text-align:center; padding:3.5rem 1rem; color:#94a3b8; }
+      /* Pagination */
+      .pagination-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.9rem 1.5rem;
+        border-top: 1px solid #f1f5f9;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      .page-count {
+        font-size: 0.82rem;
+        color: #94a3b8;
+      }
+      .page-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      #pageInfo {
+        font-size: 0.82rem;
+        color: #64748b;
+        min-width: 90px;
+        text-align: center;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 3.5rem 1rem;
+        color: #94a3b8;
+      }
 
-        /* Back */
-        .back-btn { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); color:white; border-radius:8px; padding:.4rem .9rem; font-size:.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; transition:background .2s; }
-        .back-btn:hover { background:rgba(255,255,255,.28); color:white; }
+      /* Back */
+      .back-btn {
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        color: white;
+        border-radius: 8px;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+      }
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.28);
+        color: white;
+      }
     </style>
-</head>
-<body class="has-fixed-header">
+  </head>
+  <body class="has-fixed-header">
     <div th:replace="~{headerbar-admin :: header}"></div>
 
     <div class="container-custom">
-        <!-- Back -->
-        <div class="mb-3">
-            <a th:href="@{/admin/dashboard-admin}" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+      <!-- Back -->
+      <div class="mb-3">
+        <a th:href="@{/admin/dashboard-admin}" class="back-btn"
+          ><i class="fas fa-arrow-left"></i> Dashboard</a
+        >
+      </div>
+
+      <div class="page-card">
+        <!-- Header -->
+        <div class="page-header">
+          <h4><i class="fas fa-exchange-alt me-2"></i>All Transactions</h4>
+          <div class="d-flex align-items-center gap-3 mt-1">
+            <div class="sub mb-0" id="txTotalInfo">Loading…</div>
+            <span
+              id="refreshIndicator"
+              style="font-size: 0.75rem; opacity: 0.8"
+            ></span>
+          </div>
         </div>
 
-        <div class="page-card">
-            <!-- Header -->
-            <div class="page-header">
-                <h4><i class="fas fa-exchange-alt me-2"></i>All Transactions</h4>
-                <div class="sub" id="txTotalInfo">Loading…</div>
-            </div>
+        <!-- Filter / Sort Bar -->
+        <div class="filter-bar">
+          <!-- Search -->
+          <input
+            type="text"
+            id="txSearch"
+            class="search-input"
+            placeholder="🔍  Search by owner, account #, amount, ID…"
+            oninput="applyFilters()"
+          />
 
-            <!-- Filter / Sort Bar -->
-            <div class="filter-bar">
-                <!-- Search -->
-                <input type="text" id="txSearch" class="search-input"
-                       placeholder="🔍  Search by owner, account #, amount, ID…"
-                       oninput="applyFilters()">
+          <!-- Type filter pills -->
+          <span class="filter-label ms-2">Filter:</span>
+          <div class="type-pills">
+            <button
+              class="type-pill active"
+              data-type="all"
+              onclick="setType(this, 'all')"
+            >
+              All
+            </button>
+            <button
+              class="type-pill"
+              data-type="DEPOSIT"
+              onclick="setType(this, 'DEPOSIT')"
+            >
+              <i
+                class="fas fa-arrow-down me-1"
+                style="color: #16a34a; font-size: 0.7rem"
+              ></i
+              >Deposit
+            </button>
+            <button
+              class="type-pill"
+              data-type="WITHDRAW"
+              onclick="setType(this, 'WITHDRAW')"
+            >
+              <i
+                class="fas fa-arrow-up me-1"
+                style="color: #dc2626; font-size: 0.7rem"
+              ></i
+              >Withdraw
+            </button>
+            <button
+              class="type-pill"
+              data-type="TRANSFER"
+              onclick="setType(this, 'TRANSFER')"
+            >
+              <i
+                class="fas fa-exchange-alt me-1"
+                style="color: #2563eb; font-size: 0.7rem"
+              ></i
+              >Transfer
+            </button>
+          </div>
 
-                <!-- Type filter pills -->
-                <span class="filter-label ms-2">Filter:</span>
-                <div class="type-pills">
-                    <button class="type-pill active" data-type="all"      onclick="setType(this,'all')">All</button>
-                    <button class="type-pill"         data-type="DEPOSIT"  onclick="setType(this,'DEPOSIT')"><i class="fas fa-arrow-down me-1" style="color:#16a34a;font-size:.7rem;"></i>Deposit</button>
-                    <button class="type-pill"         data-type="WITHDRAW" onclick="setType(this,'WITHDRAW')"><i class="fas fa-arrow-up me-1" style="color:#dc2626;font-size:.7rem;"></i>Withdraw</button>
-                    <button class="type-pill"         data-type="TRANSFER" onclick="setType(this,'TRANSFER')"><i class="fas fa-exchange-alt me-1" style="color:#2563eb;font-size:.7rem;"></i>Transfer</button>
-                </div>
-
-                <!-- Sort -->
-                <span class="filter-label ms-auto">Sort by:</span>
-                <select class="sort-select" id="txSort" onchange="applyFilters()">
-                    <option value="date-desc">Newest First</option>
-                    <option value="date-asc">Oldest First</option>
-                    <option value="amount-desc">Amount (High → Low)</option>
-                    <option value="amount-asc">Amount (Low → High)</option>
-                </select>
-            </div>
-
-            <!-- Table -->
-            <div class="table-responsive">
-                <table class="table mb-0" id="txTable">
-                    <thead>
-                        <tr>
-                            <th class="ps-3">Txn ID</th>
-                            <th>Date &amp; Time</th>
-                            <th>Type</th>
-                            <th>Account #</th>
-                            <th>Account Owner</th>
-                            <th>Amount</th>
-                            <th>Balance After</th>
-                            <th class="pe-3">Remark</th>
-                        </tr>
-                    </thead>
-                    <tbody id="txBody"></tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="pagination-bar">
-                <div class="page-count" id="txTotalCount"></div>
-                <div class="page-nav">
-                    <button class="btn btn-sm btn-outline-secondary" id="txPrev"><i class="fas fa-chevron-left"></i></button>
-                    <span id="pageInfo"></span>
-                    <button class="btn btn-sm btn-outline-secondary" id="txNext"><i class="fas fa-chevron-right"></i></button>
-                </div>
-            </div>
+          <!-- Sort -->
+          <span class="filter-label ms-auto">Sort by:</span>
+          <select class="sort-select" id="txSort" onchange="applyFilters()">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="amount-desc">Amount (High → Low)</option>
+            <option value="amount-asc">Amount (Low → High)</option>
+          </select>
         </div>
 
-        <!-- Hidden Thymeleaf data -->
-        <div id="txData" style="display:none;">
-            <span th:each="t : ${transactions}"
-                  th:attr="
-                    data-id=${t.id},
-                    data-type=${t.transactionType},
-                    data-amount=${t.amount},
-                    data-balance=${t.remainingBalance},
-                    data-timestamp=${t.timestamp},
-                    data-remark=${t.remark},
-                    data-account-number=${t.account != null ? t.account.accountNumber : ''},
-                    data-owner-name=${t.account != null and t.account.customer != null ? t.account.customer.fname + ' ' + t.account.customer.lname : ''},
-                    data-owner-id=${t.account != null and t.account.customer != null ? t.account.customer.id : ''}">
-            </span>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table mb-0" id="txTable">
+            <thead>
+              <tr>
+                <th class="ps-3">Txn ID</th>
+                <th>Date &amp; Time</th>
+                <th>Type</th>
+                <th>Account #</th>
+                <th>Account Owner</th>
+                <th>Amount</th>
+                <th>Balance After</th>
+                <th class="pe-3">Remark</th>
+              </tr>
+            </thead>
+            <tbody id="txBody"></tbody>
+          </table>
         </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar">
+          <div class="page-count" id="txTotalCount"></div>
+          <div class="page-nav">
+            <button class="btn btn-sm btn-outline-secondary" id="txPrev">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <span id="pageInfo"></span>
+            <button class="btn btn-sm btn-outline-secondary" id="txNext">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data is loaded via AJAX -->
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const PAGE = 15;
-        let page = 1;
-        let allTx = [];
-        let filtered = [];
-        let activeType = 'all';
+      const PAGE = 15;
+      let page = 1;
+      let allTx = [];
+      let filtered = [];
+      let activeType = "all";
 
-        /* ---- Date formatter ---- */
-        function fmtDate(raw) {
-            if (!raw) return { date: '—', time: '' };
-            try {
-                const d = new Date(raw);
-                return {
-                    date: d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }),
-                    time: d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true })
-                };
-            } catch { return { date: raw, time: '' }; }
+      /* ---- Date formatter ---- */
+      function fmtDate(raw) {
+        if (!raw) return { date: "—", time: "" };
+        try {
+          const d = new Date(raw);
+          return {
+            date: d.toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+            time: d.toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+          };
+        } catch {
+          return { date: raw, time: "" };
+        }
+      }
+
+      /* ---- Load data ---- */
+      async function fetchTransactions() {
+        try {
+          const res = await fetch("/admin/api/transactions");
+          if (!res.ok) throw new Error("Failed to load transactions");
+          const data = await res.json();
+
+          allTx = data.map((t) => ({
+            id: t.transactionId || "—",
+            type: t.transactionType || "",
+            amount: t.amount ? t.amount.toString() : "0",
+            balance: t.remainingBalance ? t.remainingBalance.toString() : "0",
+            timestamp: t.timestamp || "",
+            remark: t.remark || "—",
+            acctNo: t.account ? t.account.accountNumber : "—",
+            ownerName:
+              t.account && t.account.customer
+                ? `${t.account.customer.fname || ""} ${t.account.customer.lname || ""}`.trim()
+                : "—",
+            ownerId:
+              t.account && t.account.customer ? t.account.customer.id : "",
+          }));
+
+          const now = new Date().toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          });
+          document.getElementById("refreshIndicator").textContent =
+            "Updated " + now;
+
+          document.getElementById("txTotalInfo").textContent =
+            allTx.length + " transaction(s)";
+          applyFilters();
+        } catch (e) {
+          console.error(e);
+          if (allTx.length === 0) {
+            document.getElementById("txBody").innerHTML =
+              '<tr><td colspan="8" class="empty-state"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Error loading transactions.</td></tr>';
+          }
+        }
+      }
+
+      /* ---- Type filter pill ---- */
+      function setType(btn, type) {
+        document.querySelectorAll(".type-pill").forEach((b) => {
+          b.classList.remove(
+            "active",
+            "active-deposit",
+            "active-withdraw",
+            "active-transfer",
+          );
+        });
+        if (type === "DEPOSIT") btn.classList.add("active-deposit");
+        else if (type === "WITHDRAW") btn.classList.add("active-withdraw");
+        else if (type === "TRANSFER") btn.classList.add("active-transfer");
+        else btn.classList.add("active");
+        activeType = type;
+        page = 1;
+        applyFilters();
+      }
+
+      /* ---- Combined filter + sort ---- */
+      function applyFilters() {
+        const q = (document.getElementById("txSearch").value || "")
+          .toLowerCase()
+          .trim();
+        const sort = document.getElementById("txSort").value;
+
+        // Filter by type
+        let result =
+          activeType === "all"
+            ? [...allTx]
+            : allTx.filter((t) => t.type === activeType);
+
+        // Filter by search
+        if (q)
+          result = result.filter(
+            (t) =>
+              t.type.toLowerCase().includes(q) ||
+              t.acctNo.toLowerCase().includes(q) ||
+              t.ownerName.toLowerCase().includes(q) ||
+              t.amount.includes(q) ||
+              t.id.toString().includes(q) ||
+              (t.remark || "").toLowerCase().includes(q),
+          );
+
+        // Sort
+        result.sort((a, b) => {
+          if (sort === "date-asc")
+            return new Date(a.timestamp) - new Date(b.timestamp);
+          if (sort === "date-desc")
+            return new Date(b.timestamp) - new Date(a.timestamp);
+          if (sort === "amount-asc")
+            return parseFloat(a.amount) - parseFloat(b.amount);
+          if (sort === "amount-desc")
+            return parseFloat(b.amount) - parseFloat(a.amount);
+          return 0;
+        });
+
+        filtered = result;
+        document.getElementById("txTotalCount").textContent =
+          filtered.length + " result(s)";
+        page = 1;
+        render();
+      }
+
+      /* ---- Render current page ---- */
+      function render() {
+        const body = document.getElementById("txBody");
+        const total = filtered.length;
+
+        if (!total) {
+          body.innerHTML =
+            '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No transactions match your filters.</td></tr>';
+          document.getElementById("pageInfo").textContent = "";
+          document.getElementById("txPrev").disabled = true;
+          document.getElementById("txNext").disabled = true;
+          return;
         }
 
-        /* ---- Load data ---- */
-        function init() {
-            allTx = Array.from(document.querySelectorAll('#txData span')).map(el => ({
-                id:        el.dataset.id            || '—',
-                type:      el.dataset.type           || '',
-                amount:    el.dataset.amount         || '0',
-                balance:   el.dataset.balance        || '0',
-                timestamp: el.dataset.timestamp      || '',
-                remark:    el.dataset.remark         || '—',
-                acctNo:    el.dataset.accountNumber  || '—',
-                ownerName: el.dataset.ownerName      || '—',
-                ownerId:   el.dataset.ownerId        || '',
-            }));
-            document.getElementById('txTotalInfo').textContent = allTx.length + ' transaction(s)';
-            applyFilters();
-        }
+        const totalPages = Math.ceil(total / PAGE);
+        page = Math.max(1, Math.min(page, totalPages));
+        const start = (page - 1) * PAGE;
+        const slice = filtered.slice(start, start + PAGE);
 
-        /* ---- Type filter pill ---- */
-        function setType(btn, type) {
-            document.querySelectorAll('.type-pill').forEach(b => {
-                b.classList.remove('active','active-deposit','active-withdraw','active-transfer');
-            });
-            if (type === 'DEPOSIT')  btn.classList.add('active-deposit');
-            else if (type === 'WITHDRAW') btn.classList.add('active-withdraw');
-            else if (type === 'TRANSFER') btn.classList.add('active-transfer');
-            else btn.classList.add('active');
-            activeType = type;
-            page = 1;
-            applyFilters();
-        }
+        document.getElementById("pageInfo").textContent =
+          `${start + 1}–${Math.min(start + PAGE, total)} of ${total}`;
+        document.getElementById("txPrev").disabled = page <= 1;
+        document.getElementById("txNext").disabled = page >= totalPages;
 
-        /* ---- Combined filter + sort ---- */
-        function applyFilters() {
-            const q    = (document.getElementById('txSearch').value || '').toLowerCase().trim();
-            const sort = document.getElementById('txSort').value;
+        body.innerHTML = slice
+          .map((t) => {
+            const amt = parseFloat(t.amount || 0);
+            const bal = parseFloat(t.balance || 0);
+            const { date, time } = fmtDate(t.timestamp);
 
-            // Filter by type
-            let result = activeType === 'all'
-                ? [...allTx]
-                : allTx.filter(t => t.type === activeType);
-
-            // Filter by search
-            if (q) result = result.filter(t =>
-                t.type.toLowerCase().includes(q)      ||
-                t.acctNo.toLowerCase().includes(q)    ||
-                t.ownerName.toLowerCase().includes(q) ||
-                t.amount.includes(q)                  ||
-                t.id.toString().includes(q)            ||
-                (t.remark || '').toLowerCase().includes(q)
-            );
-
-            // Sort
-            result.sort((a, b) => {
-                if (sort === 'date-asc')    return new Date(a.timestamp) - new Date(b.timestamp);
-                if (sort === 'date-desc')   return new Date(b.timestamp) - new Date(a.timestamp);
-                if (sort === 'amount-asc')  return parseFloat(a.amount)  - parseFloat(b.amount);
-                if (sort === 'amount-desc') return parseFloat(b.amount)  - parseFloat(a.amount);
-                return 0;
-            });
-
-            filtered = result;
-            document.getElementById('txTotalCount').textContent = filtered.length + ' result(s)';
-            page = 1;
-            render();
-        }
-
-        /* ---- Render current page ---- */
-        function render() {
-            const body = document.getElementById('txBody');
-            const total = filtered.length;
-
-            if (!total) {
-                body.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No transactions match your filters.</td></tr>';
-                document.getElementById('pageInfo').textContent = '';
-                document.getElementById('txPrev').disabled = true;
-                document.getElementById('txNext').disabled = true;
-                return;
+            let badgeCls, prefix, amtCls;
+            if (t.type === "DEPOSIT") {
+              badgeCls = "bg-success";
+              prefix = "+";
+              amtCls = "tx-credit";
+            } else if (t.type === "WITHDRAW") {
+              badgeCls = "bg-danger";
+              prefix = "−";
+              amtCls = "tx-debit";
+            } else {
+              badgeCls = "bg-primary";
+              prefix = "";
+              amtCls = "";
             }
 
-            const totalPages = Math.ceil(total / PAGE);
-            page = Math.max(1, Math.min(page, totalPages));
-            const start = (page - 1) * PAGE;
-            const slice = filtered.slice(start, start + PAGE);
+            const ownerLink = t.ownerId
+              ? `<a href="/admin/customer-account/${t.ownerId}" style="text-decoration:none;color:#667eea;font-weight:600;">${t.ownerName}</a>`
+              : `<span>${t.ownerName}</span>`;
 
-            document.getElementById('pageInfo').textContent = `${start+1}–${Math.min(start+PAGE,total)} of ${total}`;
-            document.getElementById('txPrev').disabled = page <= 1;
-            document.getElementById('txNext').disabled = page >= totalPages;
-
-            body.innerHTML = slice.map(t => {
-                const amt = parseFloat(t.amount || 0);
-                const bal = parseFloat(t.balance || 0);
-                const { date, time } = fmtDate(t.timestamp);
-
-                let badgeCls, prefix, amtCls;
-                if      (t.type === 'DEPOSIT')  { badgeCls='bg-success'; prefix='+'; amtCls='tx-credit'; }
-                else if (t.type === 'WITHDRAW') { badgeCls='bg-danger';  prefix='−'; amtCls='tx-debit';  }
-                else                            { badgeCls='bg-primary'; prefix='';  amtCls='';           }
-
-                const ownerLink = t.ownerId
-                    ? `<a href="/admin/customer-account/${t.ownerId}" style="text-decoration:none;color:#667eea;font-weight:600;">${t.ownerName}</a>`
-                    : `<span>${t.ownerName}</span>`;
-
-                return `<tr>
+            return `<tr>
                     <td class="ps-3"><small class="text-muted">#${t.id}</small></td>
                     <td>${date}<br><small class="text-muted">${time}</small></td>
                     <td><span class="badge ${badgeCls}">${t.type}</span></td>
@@ -273,13 +537,21 @@
                     <td>₹${bal.toFixed(2)}</td>
                     <td class="pe-3"><small>${t.remark}</small></td>
                 </tr>`;
-            }).join('');
-        }
+          })
+          .join("");
+      }
 
-        document.getElementById('txPrev').addEventListener('click', () => { page--; render(); });
-        document.getElementById('txNext').addEventListener('click', () => { page++; render(); });
+      document.getElementById("txPrev").addEventListener("click", () => {
+        page--;
+        render();
+      });
+      document.getElementById("txNext").addEventListener("click", () => {
+        page++;
+        render();
+      });
 
-        init();
+      fetchTransactions();
+      setInterval(fetchTransactions, 10000);
     </script>
-</body>
+  </body>
 </html>

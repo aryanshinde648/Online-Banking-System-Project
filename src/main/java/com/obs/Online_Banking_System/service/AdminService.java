@@ -1,5 +1,6 @@
 package com.obs.Online_Banking_System.service;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -7,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import com.obs.Online_Banking_System.dto.AdminDto;
 
 public interface AdminService {
-    
+
     public ResponseEntity<String> registerAdmin(AdminDto admin);
 
     public AdminDto register(AdminDto admin);
@@ -28,4 +29,7 @@ public interface AdminService {
 
     Map<String, Object> athenticateAdminMap(String email, String pass);
 
+    List<AdminDto> getAllAdmins();
+
+    AdminDto fullUpdateAdmin(Long id, AdminDto dto);
 }

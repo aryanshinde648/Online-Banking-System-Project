@@ -6,10 +6,13 @@ import java.util.List;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.AccountDto;
+import com.obs.Online_Banking_System.dto.TransactionDto;
 import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
 import com.obs.Online_Banking_System.entity.Account;
@@ -18,6 +21,7 @@ import com.obs.Online_Banking_System.entity.Transaction;
 import com.obs.Online_Banking_System.enumDto.TransactionType;
 import com.obs.Online_Banking_System.exception.ResourceNotFoundException;
 import com.obs.Online_Banking_System.mapper.AccountConversion;
+import com.obs.Online_Banking_System.mapper.TransactionConversion;
 import com.obs.Online_Banking_System.repository.AccountRepository;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.repository.TransactionRepository;
@@ -40,6 +44,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         @Autowired
         private AccountConversion accountConversion;
+
+        @Autowired
+        private TransactionConversion trxConversion;
 
         @Override
         @Transactional
@@ -277,6 +284,21 @@ public class TransactionServiceImpl implements TransactionService {
                 deposit(tx, email);
 
                 return "Transaction saved";
+        }
+
+        @Override
+        public Long getAllTransactionsCount() {
+                return transactionRepository.count();
+        }
+
+        @Override
+        public List<TransactionDto> findAllTransactions() {
+                List<Transaction> txList = transactionRepository.findAll(
+                Sort.by(Direction.DESC, "timestamp"));
+
+                List<TransactionDto> trxDtoList = trxConversion.toTransactionDtoList(txList);
+
+                return trxDtoList;
         }
 
 }

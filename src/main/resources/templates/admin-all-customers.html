@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Customers | Admin</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet" />
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .container-custom {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem 3rem;
+      }
+      .page-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+      }
+      .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.8rem 2rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .page-header h4 {
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .page-info {
+        font-size: 0.85rem;
+        opacity: 0.85;
+      }
+      .back-btn {
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        color: white;
+        border-radius: 8px;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+      }
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.28);
+        color: white;
+      }
+
+      .table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .table td {
+        vertical-align: middle;
+        color: #334155;
+        font-size: 0.9rem;
+        border-color: #f1f5f9;
+      }
+      .table tbody tr:hover {
+        background-color: #f8fafc;
+      }
+
+      .badge-custom {
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.3em 0.65em;
+      }
+      .avatar-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-right: 0.6rem;
+        flex-shrink: 0;
+      }
+
+      .search-input {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .search-input:focus {
+        border-color: #667eea;
+      }
+
+      .loading-row td {
+        text-align: center;
+        color: #94a3b8;
+        padding: 2.5rem !important;
+      }
+      .pagination-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.9rem 1.5rem;
+        border-top: 1px solid #f1f5f9;
+      }
+    </style>
+  </head>
+  <body class="has-fixed-header">
+    <div th:replace="~{headerbar-admin :: header}"></div>
+
+    <div class="container-custom">
+      <!-- Back btn -->
+      <div class="mb-3">
+        <a th:href="@{/admin/dashboard-admin}" class="back-btn"
+          ><i class="fas fa-arrow-left"></i> Dashboard</a
+        >
+      </div>
+
+      <div class="page-card">
+        <div class="page-header">
+          <div>
+            <h4><i class="fas fa-users me-2"></i> All Customers</h4>
+            <div class="page-info" id="pageInfoTxt">Loading...</div>
+          </div>
+          <!-- Pagination Controls & Search inside Header -->
+          <div class="d-flex align-items-center gap-2">
+            <span
+              id="refreshIndicator"
+              style="font-size: 0.75rem; opacity: 0.8; margin-right: 8px"
+            ></span>
+            <input
+              type="text"
+              class="search-input bg-white"
+              id="customerSearch"
+              placeholder="Search by name/email…"
+            />
+            <button
+              class="btn btn-sm"
+              style="
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: none;
+              "
+              id="prevPage"
+              title="Previous"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button
+              class="btn btn-sm"
+              style="
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: none;
+              "
+              id="nextPage"
+              title="Next"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table mb-0" id="customerTable">
+            <thead>
+              <tr>
+                <th class="ps-3">Customer</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Joined</th>
+                <th>Status</th>
+                <th class="pe-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customerBody">
+              <tr class="loading-row">
+                <td colspan="6">
+                  <i class="fas fa-spinner fa-spin me-2"></i>Loading customers…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let allCustomers = [];
+      let filteredCustomers = [];
+      const PAGE_SIZE = 15;
+      let currentPage = 1;
+      let pollingTimer = null;
+
+      async function fetchCustomersData() {
+        try {
+          const res = await fetch("/admin/api/customers");
+          if (!res.ok) throw new Error("Network error");
+          allCustomers = await res.json();
+
+          // Update timestamp
+          const now = new Date().toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          });
+          document.getElementById("refreshIndicator").textContent =
+            "Updated " + now;
+
+          applySearchFilter();
+        } catch (err) {
+          console.error(err);
+          if (allCustomers.length === 0) {
+            document.getElementById("customerBody").innerHTML =
+              '<tr class="loading-row"><td colspan="6"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Error loading customers</td></tr>';
+          }
+        }
+      }
+
+      function applySearchFilter() {
+        const q = document
+          .getElementById("customerSearch")
+          .value.toLowerCase()
+          .trim();
+        if (!q) {
+          filteredCustomers = allCustomers;
+        } else {
+          filteredCustomers = allCustomers.filter(
+            (c) =>
+              (c.fname || "").toLowerCase().includes(q) ||
+              (c.lname || "").toLowerCase().includes(q) ||
+              (c.email || "").toLowerCase().includes(q) ||
+              (c.phone || "").toLowerCase().includes(q),
+          );
+        }
+        // Retain current page if valid
+        const maxPage = Math.max(
+          1,
+          Math.ceil(filteredCustomers.length / PAGE_SIZE),
+        );
+        if (currentPage > maxPage) currentPage = maxPage;
+
+        renderCustomerTable();
+      }
+
+      function renderCustomerTable() {
+        const tbody = document.getElementById("customerBody");
+        const total = filteredCustomers.length;
+
+        if (total === 0) {
+          tbody.innerHTML =
+            '<tr class="loading-row"><td colspan="6"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No customers found.</td></tr>';
+          document.getElementById("pageInfoTxt").textContent = "0 customers";
+          document.getElementById("prevPage").disabled = true;
+          document.getElementById("nextPage").disabled = true;
+          return;
+        }
+
+        const totalPages = Math.ceil(total / PAGE_SIZE);
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const pageData = filteredCustomers.slice(start, start + PAGE_SIZE);
+
+        const from = start + 1;
+        const to = Math.min(start + PAGE_SIZE, total);
+        document.getElementById("pageInfoTxt").textContent =
+          `${from}–${to} of ${total} customer` + (total !== 1 ? "s" : "");
+
+        document.getElementById("prevPage").disabled = currentPage <= 1;
+        document.getElementById("nextPage").disabled =
+          currentPage >= totalPages;
+
+        tbody.innerHTML = pageData
+          .map((c) => {
+            const initials = (
+              (c.fname || "?")[0] + (c.lname || "?")[0]
+            ).toUpperCase();
+            const name = [c.fname, c.lname].filter(Boolean).join(" ") || "—";
+            const joined = c.dob || "—";
+            const cid = c.customerId || "";
+            return `
+                <tr>
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle">${initials}</div>
+                            <span class="fw-semibold">${name}</span>
+                        </div>
+                    </td>
+                    <td>${c.email || "—"}</td>
+                    <td>${c.phone || "—"}</td>
+                    <td><small>${joined}</small></td>
+                    <td><span class="badge bg-success badge-custom">Active</span></td>
+                    <td class="pe-3 text-center">
+                        <a href="/admin/customer-profile/${cid}" class="btn btn-sm btn-outline-primary me-1" title="Show Profile"><i class="fas fa-user"></i></a>
+                        <a href="/admin/customer-account/${cid}" class="btn btn-sm btn-outline-secondary" title="Show Account"><i class="fas fa-wallet"></i></a>
+                    </td>
+                </tr>
+                `;
+          })
+          .join("");
+      }
+
+      // Event Listeners
+      document
+        .getElementById("customerSearch")
+        .addEventListener("input", () => {
+          currentPage = 1;
+          applySearchFilter();
+        });
+
+      document.getElementById("prevPage").addEventListener("click", () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderCustomerTable();
+        }
+      });
+
+      document.getElementById("nextPage").addEventListener("click", () => {
+        const totalPages = Math.ceil(filteredCustomers.length / PAGE_SIZE);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderCustomerTable();
+        }
+      });
+
+      // Initialize polling
+      fetchCustomersData();
+      pollingTimer = setInterval(fetchCustomersData, 10000);
+    </script>
+  </body>
+</html>

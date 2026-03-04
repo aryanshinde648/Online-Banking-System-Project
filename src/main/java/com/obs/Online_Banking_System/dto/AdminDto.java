@@ -1,5 +1,6 @@
 package com.obs.Online_Banking_System.dto;
 
+import com.obs.Online_Banking_System.enumDto.AdminRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,18 +15,20 @@ public class AdminDto {
     private Long adminId;
 
     private String fname;
-    
+
     private String lname;
-    
+
     private String email;
-    
+
     private String address;
-    
+
     private String password;
-    
+
     private String phone;
-    
+
     private String dob;
 
     private Long adharcard;
+
+    private AdminRole adminRole;
 }
