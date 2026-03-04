@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Admins | Administrative</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link th:href="@{/css/headerbar.css}" rel="stylesheet" />
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", sans-serif;
+      }
+      .container-custom {
+        max-width: 1050px;
+        margin: 2rem auto;
+        padding: 0 1rem 3rem;
+      }
+      .card-modern {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+      }
+      .page-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        padding: 1.8rem 2rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .page-header h4 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.3rem;
+      }
+      .back-btn {
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        color: white;
+        border-radius: 8px;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: background 0.2s;
+      }
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.28);
+        color: white;
+      }
+      .add-btn {
+        background: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.45rem 1rem;
+        font-size: 0.875rem;
+        color: #667eea;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+        transition: box-shadow 0.2s;
+      }
+      .add-btn:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        color: #667eea;
+      }
+      .table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .table td {
+        vertical-align: middle;
+        font-size: 0.875rem;
+        color: #334155;
+        border-color: #f1f5f9;
+      }
+      .table tbody tr:hover {
+        background: #f8fafc;
+      }
+      .role-badge {
+        padding: 0.25em 0.75em;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .role-manager {
+        background: #ede9fe;
+        color: #6d28d9;
+      }
+      .role-administrative {
+        background: #fff7ed;
+        color: #c2410c;
+      }
+      .role-director {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .empty-row {
+        text-align: center;
+        padding: 2.5rem;
+        color: #94a3b8;
+      }
+      /* Modal */
+      .modal-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+      .modal-header .btn-close {
+        filter: invert(1);
+      }
+    </style>
+  </head>
+  <body class="has-fixed-header">
+    <div th:replace="~{headerbar-admin :: header}"></div>
+
+    <div class="container-custom">
+      <!-- Nav -->
+      <div class="mb-3 d-flex gap-2">
+        <a th:href="@{/admin/dashboard-admin}" class="back-btn"
+          ><i class="fas fa-arrow-left"></i> Dashboard</a
+        >
+        <a th:href="@{/admin/register-admin}" class="add-btn"
+          ><i class="fas fa-user-plus"></i> Register New Admin</a
+        >
+      </div>
+
+      <!-- Flash messages -->
+      <div
+        th:if="${successMessage}"
+        class="alert alert-success alert-dismissible fade show mb-3"
+        role="alert"
+      >
+        <i class="fas fa-check-circle me-2"></i
+        ><span th:text="${successMessage}"></span>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      <div
+        th:if="${errorMessage}"
+        class="alert alert-danger alert-dismissible fade show mb-3"
+        role="alert"
+      >
+        <i class="fas fa-exclamation-circle me-2"></i
+        ><span th:text="${errorMessage}"></span>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+
+      <!-- Table Card -->
+      <div class="card-modern">
+        <div class="page-header">
+          <h4><i class="fas fa-users-cog me-2"></i>Manage Admins</h4>
+          <span
+            class="badge bg-light text-dark"
+            th:text="${#lists.size(managers)} + ' admin(s)'"
+          ></span>
+        </div>
+
+        <!-- Search bar -->
+        <div
+          style="
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fafbff;
+          "
+        >
+          <input
+            type="text"
+            id="adminSearch"
+            class="form-control form-control-sm"
+            placeholder="🔍  Search by name or email…"
+            style="max-width: 350px; border-radius: 10px"
+            oninput="filterTable()"
+          />
+        </div>
+
+        <div class="table-responsive">
+          <table class="table mb-0" id="adminTable">
+            <thead>
+              <tr>
+                <th class="ps-3">#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th class="pe-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(managers)}">
+                <td colspan="6" class="empty-row">
+                  <i class="fas fa-inbox me-2"></i>No admin accounts yet.
+                  <a
+                    th:href="@{/admin/register-admin}"
+                    class="ms-2 text-primary fw-semibold"
+                    >Register one →</a
+                  >
+                </td>
+              </tr>
+              <tr th:each="mgr, stat : ${managers}">
+                <td class="ps-3 text-muted" th:text="${stat.index + 1}"></td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div
+                      style="
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: 700;
+                        font-size: 0.85rem;
+                        flex-shrink: 0;
+                      "
+                      th:text="${mgr.fname != null ? mgr.fname.substring(0,1).toUpperCase() : 'A'}"
+                    ></div>
+                    <span
+                      class="fw-semibold"
+                      th:text="${mgr.fname + ' ' + mgr.lname}"
+                      >—</span
+                    >
+                  </div>
+                </td>
+                <td th:text="${mgr.email}">—</td>
+                <td th:text="${mgr.phone ?: '—'}">—</td>
+                <td>
+                  <span
+                    class="role-badge"
+                    th:classappend="${mgr.adminRole?.name() == 'DIRECTOR'} ? 'role-director' : (${mgr.adminRole?.name() == 'ADMINISTRATIVE'} ? 'role-administrative' : 'role-manager')"
+                    th:text="${mgr.adminRole?.getDisplayType() ?: 'MANAGER'}"
+                    >MANAGER</span
+                  >
+                </td>
+                <td class="pe-3 text-center">
+                  <!-- Edit button -->
+                  <button
+                    class="btn btn-sm btn-outline-primary me-1"
+                    th:onclick="'openEdit(' + ${mgr.adminId} + |,\'${mgr.fname}\',\'${mgr.lname}\',\'${mgr.email}\',\'${mgr.phone ?: ''}\',\'${mgr.adminRole?.name() ?: 'MANAGER'}\'| + ')'"
+                  >
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <!-- Delete form -->
+                  <form
+                    th:action="@{'/admin/delete-admin/' + ${mgr.adminId}}"
+                    method="post"
+                    class="d-inline"
+                    onsubmit="return confirm('Delete this admin account?');"
+                  >
+                    <input
+                      type="hidden"
+                      th:if="${_csrf != null}"
+                      th:name="${_csrf.parameterName}"
+                      th:value="${_csrf.token}"
+                    />
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-user-edit me-2"></i>Edit Admin
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <form id="editForm" method="post">
+            <input
+              type="hidden"
+              th:if="${_csrf != null}"
+              th:name="${_csrf.parameterName}"
+              th:value="${_csrf.token}"
+            />
+            <div class="modal-body p-4">
+              <div class="row g-3">
+                <div class="col-6">
+                  <label class="form-label fw-semibold">First Name</label>
+                  <input
+                    type="text"
+                    name="fname"
+                    id="editFname"
+                    class="form-control"
+                  />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">Last Name</label>
+                  <input
+                    type="text"
+                    name="lname"
+                    id="editLname"
+                    class="form-control"
+                  />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    id="editEmail"
+                    class="form-control"
+                  />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Phone</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    id="editPhone"
+                    class="form-control"
+                  />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Role</label>
+                  <select name="adminRole" id="editRole" class="form-select">
+                    <option value="MANAGER">Manager</option>
+                    <option value="DIRECTOR">Director (Full Access)</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold"
+                    >New Password
+                    <small class="text-muted"
+                      >(leave blank to keep current)</small
+                    ></label
+                  >
+                  <input
+                    type="password"
+                    name="password"
+                    class="form-control"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+              <button
+                type="button"
+                class="btn btn-light"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i>Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function openEdit(id, fname, lname, email, phone, role) {
+        document.getElementById("editFname").value = fname;
+        document.getElementById("editLname").value = lname;
+        document.getElementById("editEmail").value = email;
+        document.getElementById("editPhone").value = phone;
+        document.getElementById("editRole").value = role;
+        document.getElementById("editForm").action =
+          "/admin/update-admin/" + id;
+        new bootstrap.Modal(document.getElementById("editModal")).show();
+      }
+
+      function filterTable() {
+        const q = document.getElementById("adminSearch").value.toLowerCase();
+        document.querySelectorAll("#adminTable tbody tr").forEach((row) => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(q) ? "" : "none";
+        });
+      }
+    </script>
+  </body>
+</html>

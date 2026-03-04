@@ -1,7 +1,9 @@
 package com.obs.Online_Banking_System.service.impl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -142,7 +144,7 @@ public class AdminServiceImpl implements AdminService {
             throw new RuntimeException("Admin with Adharcard No. " + newAdmin.getAdharcard() + " already exists");
         }
 
-        newAdmin.setAdminRole(AdminRole.MANAGER);
+        newAdmin.setAdminRole(admin.getAdminRole() != null ? admin.getAdminRole() : AdminRole.MANAGER);
 
         Admin saved = adminRepository.save(newAdmin);
 
@@ -151,20 +153,21 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public AdminDto authenticateAdmin(String email, String pass) {
-        Admin admin = adminRepository.getByEmail(email).orElseThrow(() -> new RuntimeException("Admin not found with email"));
+        Admin admin = adminRepository.getByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Admin not found with email"));
 
         if (!admin.getPassword().equals(pass)) {
             throw new RuntimeException("Invalid email or password");
         }
 
-        log.info("Admin Logged success with email: {}"+email);
+        log.info("Admin Logged success with email: {}" + email);
         return adminConversion.toDto(admin);
     }
 
     @Override
     public Map<String, Object> athenticateAdminMap(String email, String pass) {
         Map<String, Object> response = new HashMap<>();
-        
+
         Admin admin = adminRepository.findByEmail(email);
 
         if (admin == null) {
@@ -177,9 +180,39 @@ public class AdminServiceImpl implements AdminService {
             return response;
         }
 
-        log.info("Admin logged in with email: {}"+ email);
+        log.info("Admin logged in with email: {}" + email);
         response.put("admin", adminConversion.toDto(admin));
         return response;
+    }
+
+    @Override
+    public List<AdminDto> getAllAdmins() {
+        return adminRepository.findAll()
+                .stream().map(adminConversion::toDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public AdminDto fullUpdateAdmin(Long id, AdminDto dto) {
+        Admin existing = adminRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        if (dto.getFname() != null)
+            existing.setFname(dto.getFname());
+        if (dto.getLname() != null)
+            existing.setLname(dto.getLname());
+        if (dto.getEmail() != null)
+            existing.setEmail(dto.getEmail());
+        if (dto.getPhone() != null)
+            existing.setPhone(dto.getPhone());
+        if (dto.getAddress() != null)
+            existing.setAddress(dto.getAddress());
+        if (dto.getDob() != null)
+            existing.setDob(dto.getDob());
+        if (dto.getAdminRole() != null)
+            existing.setAdminRole(dto.getAdminRole());
+        // Only update password if explicitly provided
+        if (dto.getPassword() != null && !dto.getPassword().isBlank())
+            existing.setPassword(dto.getPassword());
+        return adminConversion.toDto(adminRepository.save(existing));
     }
 
 }

@@ -4,8 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.obs.Online_Banking_System.entity.Admin;
+import com.obs.Online_Banking_System.enumDto.AdminRole;
+import java.util.List;
 import java.util.Optional;
-
 
 @Repository
 public interface AdminRepository extends JpaRepository<Admin, Long> {
@@ -17,5 +18,6 @@ public interface AdminRepository extends JpaRepository<Admin, Long> {
     public Admin findByAdharcard(Long adharcard);
 
     Optional<Admin> getByAdharcard(Long adharcard);
-    
+
+    List<Admin> findAllByAdminRole(AdminRole role);
 }

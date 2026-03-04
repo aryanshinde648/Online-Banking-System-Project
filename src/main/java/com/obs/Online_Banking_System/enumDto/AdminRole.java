@@ -2,7 +2,8 @@ package com.obs.Online_Banking_System.enumDto;
 
 public enum AdminRole {
     MANAGER("MANAGER"),
-    ADMINISTRATIVE("ADMINISTRATIVE");
+    ADMINISTRATIVE("ADMINISTRATIVE"),
+    DIRECTOR("DIRECTOR");
 
     private final String displayType;
 
