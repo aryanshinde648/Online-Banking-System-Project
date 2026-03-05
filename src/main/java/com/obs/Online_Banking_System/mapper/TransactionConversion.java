@@ -10,7 +10,7 @@ import com.obs.Online_Banking_System.entity.Transaction;
 
 @Mapper(componentModel = "spring")
 public interface TransactionConversion {
-
+     
     List<TransactionDto> toTransactionDtoList(List<Transaction> trxList);
 
     List<Transaction> toTransactionList(List<TransactionDto> trxList);

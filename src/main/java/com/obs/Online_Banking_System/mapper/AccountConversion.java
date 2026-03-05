@@ -10,7 +10,7 @@ import com.obs.Online_Banking_System.entity.Account;
 
 @Mapper(componentModel = "spring")
 public interface AccountConversion {
-
+    
     @Mapping(target = "id", source = "accountId")
     Account toAccount(AccountDto accountdDto);
 
