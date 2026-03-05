@@ -294,11 +294,27 @@ public class TransactionServiceImpl implements TransactionService {
         @Override
         public List<TransactionDto> findAllTransactions() {
                 List<Transaction> txList = transactionRepository.findAll(
-                Sort.by(Direction.DESC, "timestamp"));
+                                Sort.by(Direction.DESC, "timestamp"));
 
                 List<TransactionDto> trxDtoList = trxConversion.toTransactionDtoList(txList);
 
                 return trxDtoList;
+        }
+
+        @Override
+        public void downloadStatement(String email, java.time.LocalDate from, java.time.LocalDate to,
+                        jakarta.servlet.http.HttpServletResponse response)
+                        throws Exception {
+                Customer customer = customerRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                Account account = accountRepository.findByCustomer(customer)
+                                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+                List<Transaction> transactions = transactionRepository.findByAccountOrderByTimestampDesc(account);
+
+                com.obs.Online_Banking_System.util.PdfStatementGenerator.generate(
+                                transactions, account, customer, from, to, response);
         }
 
 }

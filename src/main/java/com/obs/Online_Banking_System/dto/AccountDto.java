@@ -6,7 +6,6 @@ import java.time.Instant;
 import com.obs.Online_Banking_System.entity.Customer;
 import com.obs.Online_Banking_System.enumDto.AccountType;
 
-import jakarta.persistence.JoinColumn;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
