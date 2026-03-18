@@ -214,6 +214,44 @@
       </div>
     </div>
 
+    <!-- Email Statement Modal -->
+    <div class="modal fade" id="emailStatementModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header border-0 bg-light">
+            <h5 class="modal-title fw-bold text-dark">
+              <i class="fas fa-envelope text-primary me-2"></i>Email Statement
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <p class="text-muted mb-3">
+              Send a PDF statement to 
+              <strong id="modalCustomerEmail" class="text-dark"></strong>
+            </p>
+            <form id="emailStatementForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-secondary">From Date (Optional)</label>
+                  <input type="date" id="modalFromDate" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-secondary">To Date (Optional)</label>
+                  <input type="date" id="modalToDate" class="form-control" />
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0 pt-0 pe-4 pb-4">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" id="confirmEmailBtn" class="btn btn-primary px-4 shadow-sm" onclick="confirmEmailStatement()">
+              <i class="fas fa-paper-plane me-2"></i>Send Statement
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       let allCustomers = [];
@@ -321,8 +359,9 @@
                     <td><small>${joined}</small></td>
                     <td><span class="badge bg-success badge-custom">Active</span></td>
                     <td class="pe-3 text-center">
-                        <a href="/admin/customer-profile/${cid}" class="btn btn-sm btn-outline-primary me-1" title="Show Profile"><i class="fas fa-user"></i></a>
-                        <a href="/admin/customer-account/${cid}" class="btn btn-sm btn-outline-secondary" title="Show Account"><i class="fas fa-wallet"></i></a>
+                        <a href="/admin/customer-profile/${cid}" class="btn btn-sm btn-outline-primary me-1" title="Profile"><i class="fas fa-user"></i></a>
+                        <a href="/admin/customer-account/${cid}" class="btn btn-sm btn-outline-secondary me-1" title="Account"><i class="fas fa-wallet"></i></a>
+                        <button class="btn btn-sm btn-outline-info" title="Email Statement" onclick="openEmailStatementModal('${c.email}')"><i class="fas fa-envelope"></i></button>
                     </td>
                 </tr>
                 `;
@@ -356,6 +395,63 @@
       // Initialize polling
       fetchCustomersData();
       pollingTimer = setInterval(fetchCustomersData, 10000);
+
+      // ── Send Statement ────────────────────────────────────────────────────
+      // ── Send Statement ────────────────────────────────────────────────────
+      let targetEmailForStatement = null;
+      let emailModalInstance = null;
+
+      function openEmailStatementModal(email) {
+        targetEmailForStatement = email;
+        document.getElementById("modalCustomerEmail").textContent = email;
+        document.getElementById("emailStatementForm").reset();
+        
+        if (!emailModalInstance) {
+          emailModalInstance = new bootstrap.Modal(document.getElementById('emailStatementModal'));
+        }
+        emailModalInstance.show();
+      }
+
+      async function confirmEmailStatement() {
+        if (!targetEmailForStatement) return;
+
+        const fromDate = document.getElementById("modalFromDate").value;
+        const toDate = document.getElementById("modalToDate").value;
+        const btn = document.getElementById("confirmEmailBtn");
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+        
+        try {
+          let url = `/admin/api/send-statement-by-email?email=${encodeURIComponent(targetEmailForStatement)}`;
+          const params = [];
+          if (fromDate) params.push("from=" + fromDate);
+          if (toDate) params.push("to=" + toDate);
+          if (params.length) url += "&" + params.join("&");
+
+          const res = await fetch(url, { method: 'POST' });
+          const data = await res.json();
+          emailModalInstance.hide();
+          
+          if (res.ok && data.success) showToast('✅ ' + data.message, 'success');
+          else showToast('❌ ' + (data.error || 'Failed to send statement.'), 'danger');
+        } catch (e) {
+          emailModalInstance.hide();
+          showToast('❌ Network error. Please try again.', 'danger');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Send Statement';
+        }
+      }
+
+      function showToast(msg, type) {
+        const t = document.createElement('div');
+        t.className = `alert alert-${type} shadow-sm`;
+        t.style.cssText = 'position:fixed;top:1.2rem;right:1.2rem;z-index:9999;min-width:280px;font-size:.88rem;font-weight:600;border-radius:10px;animation:fadeIn .3s ease';
+        t.innerHTML = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+      }
     </script>
   </body>
 </html>

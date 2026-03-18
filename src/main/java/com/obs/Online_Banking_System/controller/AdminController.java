@@ -27,6 +27,7 @@ import com.obs.Online_Banking_System.enumDto.AdminRole;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.AdminService;
 import com.obs.Online_Banking_System.service.CustomerService;
+import com.obs.Online_Banking_System.service.StatementService;
 import com.obs.Online_Banking_System.service.TransactionService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,6 +54,9 @@ public class AdminController {
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private StatementService statementService;
 
     // ── Role helpers ─────────────────────────────────────────────────────────
 
@@ -712,6 +716,57 @@ public class AdminController {
             String msg = transactionService.withdraw(tx, email);
             result.put("success", true);
             result.put("message", msg);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    /**
+     * POST /admin/api/account/{id}/send-statement
+     * Admin triggers a PDF statement email to the customer's registered email.
+     */
+    @PostMapping("/api/account/{id}/send-statement")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> adminSendStatement(
+            @PathVariable Long id, HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+
+        Map<String, Object> result = new HashMap<>();
+        try {
+            AccountDto account = accountService.getAccountById(id);
+            String customerEmail = account.getCustomer().getEmail();
+
+            statementService.sendStatementToEmail(customerEmail, customerEmail, null, null);
+
+            result.put("success", true);
+            result.put("message", "Statement emailed to " + customerEmail + " successfully.");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    /**
+     * POST /admin/api/send-statement-by-email?email=xxx
+     * Admin sends a PDF statement to a customer identified by their email.
+     * Used from the All Customers page where we only have the email, not accountId.
+     */
+    @PostMapping("/api/send-statement-by-email")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> adminSendStatementByEmail(
+            @RequestParam String email, HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+
+        Map<String, Object> result = new HashMap<>();
+        try {
+            statementService.sendStatementToEmail(email, email, null, null);
+            result.put("success", true);
+            result.put("message", "Statement emailed to " + email + " successfully.");
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             result.put("error", e.getMessage());

@@ -9,9 +9,13 @@ import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.entity.Customer;
+import com.obs.Online_Banking_System.enumDto.AuthStatus;
+import com.obs.Online_Banking_System.enumDto.OtpType;
+import com.obs.Online_Banking_System.enumDto.OtpVerificationResult;
 import com.obs.Online_Banking_System.mapper.CustomerConversion;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.CustomerService;
+import com.obs.Online_Banking_System.service.OtpService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +29,9 @@ public class CustomerServiceImpl implements CustomerService {
     @Autowired
     CustomerConversion customerConversion;
 
+    @Autowired
+    OtpService otpService;
+
     @Override
     public Map<String, Object> registerCustomerMap(CustomerDto customerDto) {
         Map<String, Object> response = new HashMap<>();
@@ -33,20 +40,32 @@ public class CustomerServiceImpl implements CustomerService {
 
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             response.put("adhar-error", "Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
-            log.warn("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
+            log.warn("Customer with Adharcard No. {} already exists", newCust.getAdharcard());
             return response;
-
         }
 
         if (customerRepository.findByEmail(customerDto.getEmail()).isPresent()) {
             response.put("email-error", "Customer with Email " + newCust.getEmail() + " already exists");
-            log.warn("Customer with Email " + newCust.getEmail() + " already exists");
+            log.warn("Customer with Email {} already exists", newCust.getEmail());
             return response;
         }
 
+        // Save with emailVerified = false
+        newCust.setEmailVerified(false);
         customerRepository.save(newCust);
+        log.info("New customer registered: {} — awaiting email verification", newCust.getEmail());
+
+        // Generate and send EMAIL_VERIFICATION OTP
+        try {
+            otpService.generateAndSendOtp(newCust.getEmail(), OtpType.EMAIL_VERIFICATION);
+        } catch (Exception e) {
+            log.error("Failed to send verification OTP to {}: {}", newCust.getEmail(), e.getMessage());
+            response.put("otp-error", "Registration successful but email sending failed. Contact support.");
+        }
 
         response.put("customer", customerConversion.toCustomerDto(newCust));
+        response.put("email", newCust.getEmail());
+        response.put("status", "EMAIL_VERIFICATION_SENT");
 
         return response;
     }
@@ -189,17 +208,38 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.getByEmail(email);
 
         if (customer == null) {
-            response.put("error", "Customer Not Found Invalid Email or Password");
+            response.put("error", "Invalid Email or Password");
+            response.put("status", AuthStatus.INVALID_CREDENTIALS);
             return response;
         }
 
         if (!customer.getPassword().equals(pass)) {
             response.put("error", "Invalid Email or Password");
+            response.put("status", AuthStatus.INVALID_CREDENTIALS);
             return response;
         }
 
-        log.info("Customer logged in with email: {}" + email);
-        response.put("customer", customerConversion.toCustomerDto(customer));
+        // Check email verification
+        if (!customer.isEmailVerified()) {
+            log.warn("Login attempt by unverified email: {}", email);
+            response.put("error", "Please verify your email before logging in.");
+            response.put("status", AuthStatus.EMAIL_NOT_VERIFIED);
+            response.put("email", email);
+            return response;
+        }
+
+        // Password valid + email verified — trigger 2FA OTP
+        try {
+            otpService.generateAndSendOtp(email, OtpType.LOGIN_2FA);
+        } catch (Exception e) {
+            log.error("Failed to send 2FA OTP to {}: {}", email, e.getMessage());
+            response.put("error", "Failed to send login OTP. Please try again.");
+            return response;
+        }
+
+        log.info("2FA OTP sent for login: {}", email);
+        response.put("status", AuthStatus.OTP_REQUIRED);
+        response.put("email", email);
         return response;
     }
 
@@ -229,6 +269,51 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setPin(newPin);
         customerRepository.save(customer);
         return "PIN changed successfully";
+    }
+
+    // ── OTP Verification Methods ─────────────────────────────────────────────
+
+    @Override
+    public OtpVerificationResult verifyEmailOtp(String email, String otp) {
+        OtpVerificationResult result = otpService.verifyOtp(email, otp, OtpType.EMAIL_VERIFICATION);
+
+        if (result == OtpVerificationResult.SUCCESS) {
+            Customer customer = customerRepository.getByEmail(email);
+            if (customer != null) {
+                customer.setEmailVerified(true);
+                customerRepository.save(customer);
+                log.info("Email verified for customer: {}", email);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> verifyLoginOtp(String email, String otp) {
+        Map<String, Object> response = new HashMap<>();
+        OtpVerificationResult result = otpService.verifyOtp(email, otp, OtpType.LOGIN_2FA);
+
+        response.put("result", result);
+        if (result == OtpVerificationResult.SUCCESS) {
+            Customer customer = customerRepository.getByEmail(email);
+            if (customer != null) {
+                response.put("customer", customerConversion.toCustomerDto(customer));
+                log.info("Login 2FA OTP verified for: {}", email);
+            }
+        }
+        return response;
+    }
+
+    // ── Email Masking Utility ────────────────────────────────────────────────
+
+    /** Returns masked email: abc@gmail.com → a**@gmail.com */
+    public static String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return email;
+        String[] parts = email.split("@");
+        String local = parts[0];
+        String domain = parts[1];
+        if (local.length() <= 1) return email;
+        return local.charAt(0) + "***@" + domain;
     }
 
 }

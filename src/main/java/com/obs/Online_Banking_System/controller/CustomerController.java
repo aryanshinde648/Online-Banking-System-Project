@@ -20,8 +20,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
 import com.obs.Online_Banking_System.dto.CustomerDto;
+import com.obs.Online_Banking_System.enumDto.AuthStatus;
+import com.obs.Online_Banking_System.enumDto.OtpType;
+import com.obs.Online_Banking_System.enumDto.OtpVerificationResult;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.CustomerService;
+import com.obs.Online_Banking_System.service.OtpService;
+import com.obs.Online_Banking_System.service.impl.CustomerServiceImpl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -38,11 +43,15 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+    @Autowired
+    private OtpService otpService;
+
+    // ── Account ───────────────────────────────────────────────────────────────
+
     @GetMapping("/register-customer")
     public String registerCustomer(Model model) {
         model.addAttribute("customer", new CustomerDto());
         return "register-customer";
-
     }
 
     @PostMapping("/createAccount")
@@ -77,36 +86,54 @@ public class CustomerController {
         }
     }
 
+    // ── Dashboard ─────────────────────────────────────────────────────────────
+
     @GetMapping("/dashboard-customer")
     public String dashboard(HttpSession session, RedirectAttributes redirectAttributes) {
-        // Check if customer is logged in by looking for the session attribute
         CustomerDto customerDto = (CustomerDto) session.getAttribute("loggedInCustomer");
-
         if (customerDto != null) {
-            // customer is authenticated, allow access to dashboard
             return "dashboard-customer";
         } else {
-            // customer is not authenticated, redirect to login
             redirectAttributes.addFlashAttribute("errorMessage", "Please login to access the dashboard");
             return "redirect:/login-customer";
         }
     }
 
+    // ── Registration ──────────────────────────────────────────────────────────
+
     @PostMapping("/register-customer")
     public String registerCustomer(Model model, @ModelAttribute("customer") CustomerDto customerDto) {
         Map<String, Object> response = customerService.registerCustomerMap(customerDto);
 
-        if (response.containsKey("adhar-error") || response.containsKey("email-error")) {
-            String msg = new String(response.get("adhar-error").toString());
-            model.addAttribute("error", msg);
+        if (response.containsKey("adhar-error")) {
+            model.addAttribute("error", response.get("adhar-error").toString());
+            model.addAttribute("customer", new CustomerDto());
+            return "register-customer";
+        }
+        if (response.containsKey("email-error")) {
+            model.addAttribute("error", response.get("email-error").toString());
+            model.addAttribute("customer", new CustomerDto());
             return "register-customer";
         }
 
-        model.addAttribute("customer", new CustomerDto());
-        model.addAttribute("success", "Customer Registration Successfull");
+        // Redirect to email verification page
+        String email = (String) response.get("email");
+        if (email == null && response.get("customer") instanceof CustomerDto cd) {
+            email = cd.getEmail();
+        }
 
-        return "register-customer";
+        String maskedEmail = CustomerServiceImpl.maskEmail(email);
+        model.addAttribute("email", email);
+        model.addAttribute("maskedEmail", maskedEmail);
+
+        if (response.containsKey("otp-error")) {
+            model.addAttribute("warning", response.get("otp-error").toString());
+        }
+
+        return "verify-email";
     }
+
+    // ── Login ─────────────────────────────────────────────────────────────────
 
     @PostMapping("/login-customer")
     public String loginCustomer(Model model,
@@ -114,31 +141,185 @@ public class CustomerController {
             @RequestParam(name = "password") String password,
             HttpServletRequest request) throws IOException {
 
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response = customerService.athenticateCustomerMap(email, password);
+        AuthStatus status = (AuthStatus) response.get("status");
 
-        response = customerService.athenticateCustomerMap(email, password);
-
-        if (response.containsKey("error")) {
-            String msg = new String(response.get("error").toString());
-            model.addAttribute("error", msg);
+        if (status == AuthStatus.INVALID_CREDENTIALS) {
+            model.addAttribute("error", response.get("error"));
             return "login-customer";
         }
 
-        CustomerDto customerDto = (CustomerDto) response.get("customer");
+        if (status == AuthStatus.EMAIL_NOT_VERIFIED) {
+            // Resend OTP silently if needed, then send to verify page
+            String maskedEmail = CustomerServiceImpl.maskEmail(email);
+            model.addAttribute("email", email);
+            model.addAttribute("maskedEmail", maskedEmail);
+            model.addAttribute("info", "Your email is not verified. An OTP has been sent to " + maskedEmail);
+            try {
+                otpService.generateAndSendOtp(email, OtpType.EMAIL_VERIFICATION);
+            } catch (Exception ignored) { /* already handled in service */ }
+            return "verify-email";
+        }
 
-        HttpSession session = request.getSession(true);
-        session.setAttribute("loggedInCustomer", customerDto);
-        session.setAttribute("customerId", customerDto.getCustomerId());
-        session.setAttribute("email", customerDto.getEmail());
-        session.setAttribute("adharcard", customerDto.getAdharcard());
+        if (status == AuthStatus.OTP_REQUIRED) {
+            String maskedEmail = CustomerServiceImpl.maskEmail(email);
+            model.addAttribute("email", email);
+            model.addAttribute("maskedEmail", maskedEmail);
+            return "login-otp";
+        }
 
-        // wait for 10 seconds before redirecting to dashboard
-        model.addAttribute("success", "Login successful");
-        model.addAttribute("redirectDelayMs", 10);
-        model.addAttribute("redirectUrl", "/customer/dashboard-customer");
-
+        // Fallback error
+        model.addAttribute("error", response.containsKey("error") ? response.get("error") : "Login failed.");
         return "login-customer";
     }
+
+    // ── Email OTP Verification ────────────────────────────────────────────────
+
+    @GetMapping("/verify-email")
+    public String showVerifyEmail(@RequestParam(required = false) String email, Model model) {
+        if (email != null) {
+            model.addAttribute("email", email);
+            model.addAttribute("maskedEmail", CustomerServiceImpl.maskEmail(email));
+        }
+        return "verify-email";
+    }
+
+    @PostMapping("/verify-email")
+    public String verifyEmail(
+            @RequestParam String email,
+            @RequestParam String otp,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        OtpVerificationResult result = customerService.verifyEmailOtp(email, otp);
+        String maskedEmail = CustomerServiceImpl.maskEmail(email);
+
+        switch (result) {
+            case SUCCESS -> {
+                redirectAttributes.addFlashAttribute("success",
+                        "✅ Email verified successfully! Please log in.");
+                return "redirect:/login-customer";
+            }
+            case EXPIRED -> {
+                model.addAttribute("email", email);
+                model.addAttribute("maskedEmail", maskedEmail);
+                model.addAttribute("error", "OTP has expired. Please request a new one.");
+                return "verify-email";
+            }
+            case MAX_ATTEMPTS_REACHED -> {
+                model.addAttribute("email", email);
+                model.addAttribute("maskedEmail", maskedEmail);
+                model.addAttribute("error",
+                        "Too many wrong attempts. Please request a new OTP.");
+                return "verify-email";
+            }
+            default -> {
+                model.addAttribute("email", email);
+                model.addAttribute("maskedEmail", maskedEmail);
+                model.addAttribute("error", "Invalid OTP. Please try again.");
+                return "verify-email";
+            }
+        }
+    }
+
+    // ── Login OTP (2FA) ───────────────────────────────────────────────────────
+
+    @GetMapping("/login-otp")
+    public String showLoginOtp(@RequestParam(required = false) String email, Model model) {
+        if (email != null) {
+            model.addAttribute("email", email);
+            model.addAttribute("maskedEmail", CustomerServiceImpl.maskEmail(email));
+        }
+        return "login-otp";
+    }
+
+    @PostMapping("/login-otp")
+    public String verifyLoginOtp(
+            @RequestParam String email,
+            @RequestParam String otp,
+            Model model,
+            HttpServletRequest request) {
+
+        Map<String, Object> result = customerService.verifyLoginOtp(email, otp);
+        OtpVerificationResult otpResult = (OtpVerificationResult) result.get("result");
+        String maskedEmail = CustomerServiceImpl.maskEmail(email);
+
+        switch (otpResult) {
+            case SUCCESS -> {
+                // ✅ Session created ONLY here — after full OTP verification
+                CustomerDto customerDto = (CustomerDto) result.get("customer");
+                HttpSession session = request.getSession(true);
+                session.setAttribute("loggedInCustomer", customerDto);
+                session.setAttribute("customerId", customerDto.getCustomerId());
+                session.setAttribute("email", customerDto.getEmail());
+                session.setAttribute("adharcard", customerDto.getAdharcard());
+                return "redirect:/customer/dashboard-customer";
+            }
+            case EXPIRED -> {
+                model.addAttribute("email", email);
+                model.addAttribute("maskedEmail", maskedEmail);
+                model.addAttribute("error", "OTP has expired. Please log in again.");
+                return "login-otp";
+            }
+            case MAX_ATTEMPTS_REACHED -> {
+                model.addAttribute("email", email);
+                model.addAttribute("maskedEmail", maskedEmail);
+                model.addAttribute("error",
+                        "Too many wrong attempts. Please log in again to receive a new OTP.");
+                return "login-otp";
+            }
+            default -> {
+                model.addAttribute("email", email);
+                model.addAttribute("maskedEmail", maskedEmail);
+                model.addAttribute("error", "Invalid OTP. Please try again.");
+                return "login-otp";
+            }
+        }
+    }
+
+    // ── Resend OTP (AJAX) ─────────────────────────────────────────────────────
+
+    @PostMapping("/api/resend-otp")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> resendOtp(
+            @RequestBody Map<String, String> body) {
+        Map<String, Object> response = new HashMap<>();
+        String email = body.get("email");
+        String typeStr = body.get("type"); // "EMAIL_VERIFICATION" or "LOGIN_2FA"
+
+        if (email == null || email.isBlank()) {
+            response.put("error", "Email is required.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        OtpType otpType;
+        try {
+            otpType = OtpType.valueOf(typeStr);
+        } catch (Exception e) {
+            response.put("error", "Invalid OTP type.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        long remaining = otpService.getResendCooldownRemaining(email, otpType);
+        if (remaining > 0) {
+            response.put("error", "Please wait " + remaining + " second(s) before resending.");
+            response.put("cooldownRemaining", remaining);
+            return ResponseEntity.status(429).body(response);
+        }
+
+        try {
+            otpService.resendOtp(email, otpType);
+            response.put("success", true);
+            response.put("message", "OTP sent to " + CustomerServiceImpl.maskEmail(email));
+        } catch (RuntimeException e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(429).body(response);
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ── Profile ───────────────────────────────────────────────────────────────
 
     @PutMapping({ "/profile-customer/{id}", "/profile/{id}" })
     @ResponseBody
@@ -164,25 +345,19 @@ public class CustomerController {
         CustomerDto customerDto = (CustomerDto) session.getAttribute("loggedInCustomer");
 
         if (customerDto != null) {
-            // Expose logged-in customer and id to the view (templates should use these
-            // model attributes)
             Object logged = session.getAttribute("loggedInCustomer");
             model.addAttribute("loggedInCustomer", logged);
             model.addAttribute("customerId", session.getAttribute("customerId"));
-
             model.addAttribute("customer", new CustomerDto());
             return "profile-customer";
         } else {
-            // customer is not authenticated, redirect to login
             redirectAttributes.addFlashAttribute("errorMessage", "Please login to access the dashboard");
             return "redirect:/login-customer";
         }
     }
 
-    /**
-     * POST /customer/api/change-password
-     * Body: { "oldPassword": "...", "newPassword": "..." }
-     */
+    // ── Password & PIN ────────────────────────────────────────────────────────
+
     @PostMapping("/api/change-password")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> changePassword(
@@ -210,10 +385,6 @@ public class CustomerController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * POST /customer/api/change-pin
-     * Body: { "oldPin": "...", "newPin": "..." }
-     */
     @PostMapping("/api/change-pin")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> changePin(
@@ -240,5 +411,4 @@ public class CustomerController {
         result.put("message", msg);
         return ResponseEntity.ok(result);
     }
-
 }

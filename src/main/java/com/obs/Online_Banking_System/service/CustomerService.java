@@ -35,4 +35,16 @@ public interface CustomerService {
 
     String changePin(Long id, String oldPin, String newPin);
 
+    /**
+     * Verifies EMAIL_VERIFICATION OTP; marks customer as emailVerified=true on success.
+     * @return OtpVerificationResult (SUCCESS / INVALID / EXPIRED / MAX_ATTEMPTS_REACHED)
+     */
+    com.obs.Online_Banking_System.enumDto.OtpVerificationResult verifyEmailOtp(String email, String otp);
+
+    /**
+     * Verifies LOGIN_2FA OTP. On success returns the CustomerDto for session creation.
+     * @return CustomerDto on SUCCESS, null otherwise (result put in map along with result code)
+     */
+    java.util.Map<String, Object> verifyLoginOtp(String email, String otp);
+
 }

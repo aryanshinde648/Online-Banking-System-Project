@@ -36,4 +36,7 @@ public class CustomerDto {
 
     private String pin;
 
+    private boolean emailVerified;
+
 }
+
