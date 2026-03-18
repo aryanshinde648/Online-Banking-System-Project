@@ -382,11 +382,7 @@
               <option value="CURRENT">Current Account</option>
             </select>
           </div>
-          <div class="mb-3">
-            <label for="initialDeposit" class="form-label">Initial Deposit</label>
-            <input type="number" name="initialDeposit" id="initialDeposit" class="form-control"
-              placeholder="Enter amount" value="0" min="0" step="0.01" />
-          </div>
+
           <button type="submit" class="btn btn-primary-custom w-100">
             <i class="fas fa-plus-circle"></i> Create Account
           </button>
@@ -423,7 +419,7 @@
               <div class="text-white-50" style="font-size: 0.85rem">
                 Status
               </div>
-              <div style="font-weight: 600; color: #2ecc71">Active</div>
+              <div id="accStatus" style="font-weight: 600; color: #2ecc71">Active</div>
             </div>
           </div>
         </div>
@@ -860,6 +856,18 @@
         document.getElementById("accType").textContent =
           acc.accountType || "-";
 
+        // Update locked status
+        const statusEl = document.getElementById("accStatus");
+        if (statusEl) {
+          if (acc.locked) {
+            statusEl.textContent = "Locked";
+            statusEl.style.color = "#e74c3c"; // Red
+          } else {
+            statusEl.textContent = "Active";
+            statusEl.style.color = "#2ecc71"; // Green
+          }
+        }
+
         // createdAt is an Instant → ISO string like "2026-02-27T..."
         const createdEl = document.getElementById("accCreated");
         if (createdEl) {
@@ -1255,7 +1263,6 @@
         msgEl.classList.add("hidden");
 
         const payload = {
-          initialDeposit: parseFloat(f.initialDeposit.value || 0),
           accountType: f.accountType.value,
           email: email,
         };

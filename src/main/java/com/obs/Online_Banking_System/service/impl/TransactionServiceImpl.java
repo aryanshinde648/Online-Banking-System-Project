@@ -10,8 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
-import com.obs.Online_Banking_System.dto.AccountCreateDto;
-import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.TransactionDto;
 import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
@@ -58,6 +56,10 @@ public class TransactionServiceImpl implements TransactionService {
                 Account acc = accountRepository.findByAdharcard(cust.getAdharcard())
                                 .orElseThrow(() -> new ResourceNotFoundException("Account not found for Customer"));
 
+                if (acc.isLocked()) {
+                        throw new RuntimeException("Account is locked. Transactions are not allowed.");
+                }
+
                 BigDecimal amount = request.getAmount();
 
                 acc.setBalance(acc.getBalance().add(amount));
@@ -89,6 +91,10 @@ public class TransactionServiceImpl implements TransactionService {
 
                 Account acc = accountRepository.findByAdharcard(cust.getAdharcard())
                                 .orElseThrow(() -> new ResourceNotFoundException("Account not found for Customer"));
+
+                if (acc.isLocked()) {
+                        throw new RuntimeException("Account is locked. Transactions are not allowed.");
+                }
 
                 BigDecimal amount = request.getAmount();
 
@@ -171,6 +177,14 @@ public class TransactionServiceImpl implements TransactionService {
                 }
 
                 BigDecimal amount = request.getAmount();
+
+                // ✅ locked check AFTER acquiring locks
+                if (senderAccount.isLocked()) {
+                        throw new RuntimeException("Account is locked. Transactions are not allowed.");
+                }
+                if (receiverAccount.isLocked()) {
+                        throw new RuntimeException("Recipient account is locked. Transfer not allowed.");
+                }
 
                 // ✅ balance check AFTER lock
                 if (senderAccount.getBalance().compareTo(amount) < 0) {
@@ -269,21 +283,6 @@ public class TransactionServiceImpl implements TransactionService {
                                         return (fname + " " + lname).trim();
                                 })
                                 .orElse("Unknown");
-        }
-
-        @Override
-        public String saveInitialDepositTransaction(AccountCreateDto acc, AccountDto accountDto, String email) {
-
-                TransactionRequestDto tx = TransactionRequestDto
-                                .builder()
-                                .amount(BigDecimal.valueOf(acc.getInitialDeposit()))
-                                .remark("Initial Deposit")
-                                .targetAccountNo(accountDto.getAccountNumber())
-                                .build();
-
-                deposit(tx, email);
-
-                return "Transaction saved";
         }
 
         @Override

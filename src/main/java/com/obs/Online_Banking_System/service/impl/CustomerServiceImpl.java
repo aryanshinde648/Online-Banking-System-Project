@@ -26,8 +26,8 @@ public class CustomerServiceImpl implements CustomerService {
     CustomerConversion customerConversion;
 
     @Override
-    public Map<String,Object> registerCustomerMap(CustomerDto customerDto) {
-        Map<String,Object> response = new HashMap<>();
+    public Map<String, Object> registerCustomerMap(CustomerDto customerDto) {
+        Map<String, Object> response = new HashMap<>();
 
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
 
@@ -35,7 +35,7 @@ public class CustomerServiceImpl implements CustomerService {
             response.put("adhar-error", "Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
             log.warn("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
             return response;
-            
+
         }
 
         if (customerRepository.findByEmail(customerDto.getEmail()).isPresent()) {
@@ -53,7 +53,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto registerCustomer(CustomerDto customerDto) {
-        
+
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
 
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
@@ -67,9 +67,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto getCustomerById(Long id) {
-        
-        Customer customer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
-        
+
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
         return customerConversion.toCustomerDto(customer);
     }
 
@@ -87,7 +88,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDto updateCustomerById(Long id, CustomerDto customerDto) {
-        Customer existingCustomer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
+        Customer existingCustomer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         if (customerDto.getFname() != null)
             existingCustomer.setFname(customerDto.getFname());
@@ -124,7 +126,6 @@ public class CustomerServiceImpl implements CustomerService {
         existingCustomer.setAddress(customerDto.getAddress());
         existingCustomer.setPhone(customerDto.getPhone());
 
-
         customerRepository.save(existingCustomer);
 
         return customerConversion.toCustomerDto(existingCustomer);
@@ -132,7 +133,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public String deleteCustomer(Long id) {
-        Customer existingCustomer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
+        Customer existingCustomer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         customerRepository.delete(existingCustomer);
 
@@ -141,7 +143,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public String changePassword(Long id, String oldPassword, String newPassword) {
-        Customer existingCustomer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
+        Customer existingCustomer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         if (!existingCustomer.getPassword().equals(oldPassword)) {
             return "Old password is incorrect";
@@ -161,27 +164,28 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         Customer customer = customerRepository.getByAdharcard(adharcard);
-        
+
         return customerConversion.toCustomerDto(customer);
     }
 
     @Override
     public CustomerDto athenticateCustomer(String email, String pass) {
-        
-        Customer customer = customerRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Customer Not Found with email id"));
+
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer Not Found with email id"));
 
         if (!customer.getPassword().equals(pass)) {
             throw new RuntimeException("Invalid Email or Password");
         }
 
-        log.info("Customer logged in with email: {}"+ email);
+        log.info("Customer logged in with email: {}" + email);
         return customerConversion.toCustomerDto(customer);
     }
 
     @Override
     public Map<String, Object> athenticateCustomerMap(String email, String pass) {
         Map<String, Object> response = new HashMap<>();
-        
+
         Customer customer = customerRepository.getByEmail(email);
 
         if (customer == null) {
@@ -194,7 +198,7 @@ public class CustomerServiceImpl implements CustomerService {
             return response;
         }
 
-        log.info("Customer logged in with email: {}"+ email);
+        log.info("Customer logged in with email: {}" + email);
         response.put("customer", customerConversion.toCustomerDto(customer));
         return response;
     }
@@ -211,5 +215,20 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.count();
     }
 
-    
+    @Override
+    public String changePin(Long id, String oldPin, String newPin) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        if (oldPin != null && !oldPin.isBlank()) {
+            if (customer.getPin() == null || !customer.getPin().equals(oldPin)) {
+                return "Old PIN is incorrect";
+            }
+        }
+
+        customer.setPin(newPin);
+        customerRepository.save(customer);
+        return "PIN changed successfully";
+    }
+
 }

@@ -100,19 +100,74 @@
             margin-bottom: 1.5rem;
         }
 
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
         .icon-login {
             color: #667eea;
             margin-right: 0.5rem;
+        }
+
+        /* Floating Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .custom-toast {
+            animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            min-width: 320px;
+            border-left: 4px solid transparent;
+            background-color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .custom-toast.error-toast {
+            border-left-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .custom-toast.success-toast {
+            border-left-color: #28a745;
+            color: #28a745;
+        }
+
+        .custom-toast .message {
+            flex: 1;
+            color: #333;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
         }
     </style>
 </head>
@@ -131,14 +186,28 @@
                     <p class="card-subtitle">Sign in to your account</p>
                 </div>
 
-                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" th:text="${error}">
-                    <i class="fas fa-exclamation-circle mr-2"></i>
-                </div>
-                <div th:if="${success}" class="alert alert-success">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    <span th:text="${success}"></span>
-                    <br>
-                    <small>Redirecting...</small>
+                <!-- Toast Container -->
+                <div class="toast-container">
+                    <!-- Error Toast -->
+                    <div th:if="${error}" class="custom-toast error-toast">
+                        <i class="fas fa-exclamation-circle" style="font-size: 1.4rem;"></i>
+                        <div class="message" th:text="${error}"></div>
+                        <button type="button" class="btn-close"
+                            style="background:none; border:none; color:#95a5a6; font-size:1.2rem; cursor:pointer;"
+                            onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+
+                    <!-- Success Toast -->
+                    <div th:if="${success}" class="custom-toast success-toast">
+                        <i class="fas fa-check-circle" style="font-size: 1.4rem;"></i>
+                        <div class="message">
+                            <span th:text="${success}"></span><br>
+                            <small class="text-muted" style="font-weight: normal;">Redirecting...</small>
+                        </div>
+                        <button type="button" class="btn-close"
+                            style="background:none; border:none; color:#95a5a6; font-size:1.2rem; cursor:pointer;"
+                            onclick="this.parentElement.remove()">&times;</button>
+                    </div>
                 </div>
 
                 <form th:action="@{/customer/login-customer}" method="post">
@@ -176,7 +245,22 @@
 
     <script th:if="${success}" th:inline="javascript">
         const redirectUrl = /*[[${redirectUrl}]]*/ '/customer/dashboard-customer';
-        window.location.href = redirectUrl;
+        setTimeout(() => {
+            window.location.href = redirectUrl;
+        }, 1500);
+    </script>
+
+    <script>
+        // Auto-dismiss toasts after 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.custom-toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOutRight 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            });
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -246,43 +246,79 @@
             transform: translateY(-2px);
         }
 
+        #alertContainer {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
         .alert-box {
-            padding: 15px 20px;
+            padding: 16px 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 12px;
-            animation: slideIn 0.3s ease;
+            animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            min-width: 300px;
+            pointer-events: auto;
+            background: white;
+            border-left: 4px solid transparent;
         }
 
         .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #28a745;
+            border-left-color: #2ecc71;
+            color: #27ae60;
+        }
+
+        .alert-success .alert-text {
+            color: #2c3e50;
         }
 
         .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
+            border-left-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .alert-error .alert-text {
+            color: #2c3e50;
         }
 
         .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 2px solid #bee5eb;
+            border-left-color: #3498db;
+            color: #2980b9;
         }
 
-        @keyframes slideIn {
+        .alert-info .alert-text {
+            color: #2c3e50;
+        }
+
+        @keyframes slideInRight {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateX(100%);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(100%);
             }
         }
 
@@ -498,6 +534,61 @@
                         </div>
                     </div>
 
+                    <!-- Account Security Section -->
+                    <div class="profile-section"
+                        style="margin-top: 30px; padding-top: 25px; border-top: 2px solid #f0f0f0;">
+                        <div class="profile-section-title">
+                            <i class="fas fa-shield-alt"></i> Account Security
+                        </div>
+
+                        <!-- Change Password -->
+                        <div
+                            style="background: #f8f9fa; border-radius: 12px; padding: 20px; border-left: 4px solid #764ba2; margin-bottom: 20px;">
+                            <h6 style="color: #2c3e50; font-weight: 600; margin-bottom: 15px; font-size: 15px;">
+                                <i class="fas fa-key me-2 text-muted"></i>Change Password
+                            </h6>
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-field-label">Current Password</div>
+                                    <input type="password" class="profile-field-input" id="oldPassword"
+                                        placeholder="Enter current password">
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-field-label">New Password</div>
+                                    <input type="password" class="profile-field-input" id="newPassword"
+                                        placeholder="Enter new password">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm text-white px-4"
+                                style="background:#764ba2; border-radius:6px; font-weight:500;" id="btnChangePwd"
+                                onclick="changePassword()">Update Password</button>
+                        </div>
+
+                        <!-- Change PIN -->
+                        <div
+                            style="background: #f8f9fa; border-radius: 12px; padding: 20px; border-left: 4px solid #667eea;">
+                            <h6 style="color: #2c3e50; font-weight: 600; margin-bottom: 15px; font-size: 15px;">
+                                <i class="fas fa-th me-2 text-muted"></i>Change Transaction PIN
+                            </h6>
+                            <div class="profile-row">
+                                <div class="profile-field">
+                                    <div class="profile-field-label">Current PIN <span class="text-muted fw-normal"
+                                            style="text-transform:none">(Leave blank if no PIN exists)</span></div>
+                                    <input type="password" class="profile-field-input" id="oldPin"
+                                        placeholder="Enter current PIN" maxlength="6">
+                                </div>
+                                <div class="profile-field">
+                                    <div class="profile-field-label">New PIN (6 digits)</div>
+                                    <input type="password" class="profile-field-input" id="newPin"
+                                        placeholder="Enter new 6-digit PIN" maxlength="6" pattern="\d{6}">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm text-white px-4"
+                                style="background:#667eea; border-radius:6px; font-weight:500;" id="btnChangePin"
+                                onclick="changePin()">Update PIN</button>
+                        </div>
+                    </div>
+
                     <!-- Action Buttons -->
                     <div class="action-buttons" id="actionButtons">
                         <button type="button" class="btn-action btn-update" id="updateBtn" onclick="enableEditMode()">
@@ -661,26 +752,97 @@
             }
         }
 
-        // Show Alert
+        // Show Alert Pop-up
+        let alertCounter = 0;
         function showAlert(message, type) {
-            clearAlerts();
             const alertContainer = document.getElementById('alertContainer');
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert-box alert-${type}`;
+            const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+
             alertDiv.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
+                <i class="fas fa-${icon}" style="font-size: 1.4rem;"></i>
+                <span class="alert-text" style="flex:1; font-weight: 500; font-size: 0.95rem;">${message}</span>
+                <button type="button" style="background:none; border:none; padding:0; margin-left:auto; font-size:1.2rem; cursor:pointer; color:#95a5a6; transition:color 0.2s;" onmouseover="this.style.color='#2c3e50'" onmouseout="this.style.color='#95a5a6'" onclick="this.parentElement.remove()">&times;</button>
             `;
             alertContainer.appendChild(alertDiv);
 
-            if (type === 'success') {
-                setTimeout(() => alertDiv.remove(), 3000);
-            }
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.style.animation = 'fadeOut 0.3s ease forwards';
+                    setTimeout(() => alertDiv.remove(), 300);
+                }
+            }, 5000);
         }
 
         // Clear All Alerts
         function clearAlerts() {
             document.getElementById('alertContainer').innerHTML = '';
+        }
+
+        // Change Password
+        async function changePassword() {
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            if (!oldPassword || !newPassword) {
+                showAlert('Both current and new password fields are required.', 'error');
+                return;
+            }
+            const btn = document.getElementById('btnChangePwd');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+
+            try {
+                const res = await fetch('/customer/api/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldPassword, newPassword })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to update password');
+
+                showAlert(data.message || 'Password updated successfully!', 'success');
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+            } catch (err) {
+                showAlert(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Update Password';
+            }
+        }
+
+        // Change PIN
+        async function changePin() {
+            const oldPin = document.getElementById('oldPin').value;
+            const newPin = document.getElementById('newPin').value;
+            if (!newPin || newPin.length !== 6 || !/^\d+$/.test(newPin)) {
+                showAlert('New PIN must be exactly 6 digits.', 'error');
+                return;
+            }
+            const btn = document.getElementById('btnChangePin');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+
+            try {
+                const res = await fetch('/customer/api/change-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldPin, newPin })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to update PIN');
+
+                showAlert(data.message || 'PIN updated successfully!', 'success');
+                document.getElementById('oldPin').value = '';
+                document.getElementById('newPin').value = '';
+            } catch (err) {
+                showAlert(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Update PIN';
+            }
         }
 
         // Keyboard shortcuts

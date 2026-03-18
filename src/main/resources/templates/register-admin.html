@@ -1,453 +1,363 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <title>Register - Admin</title>
-    <link th:href="@{/css/headerbar.css}" rel="stylesheet" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
 
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        padding-bottom: 2rem;
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Register - Admin</title>
+  <link th:href="@{/css/headerbar.css}" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-      .register-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        border: none;
-      }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      padding-bottom: 2rem;
+    }
 
-      .register-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
-      }
+    .register-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      border: none;
+    }
 
-      .card-title-register {
-        color: #2c3e50;
-        font-weight: 700;
-        font-size: 1.8rem;
-        margin-bottom: 0.5rem;
-      }
+    .register-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+    }
 
-      .card-subtitle {
-        color: #7f8c8d;
-        font-size: 0.95rem;
-        margin-bottom: 2rem;
-      }
+    .card-title-register {
+      color: #2c3e50;
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
 
-      .form-control,
-      .form-select {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-      }
+    .card-subtitle {
+      color: #7f8c8d;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
 
-      .form-control:focus,
-      .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        background-color: #f8f9ff;
-      }
+    .form-control,
+    .form-select {
+      border-radius: 8px;
+      border: 2px solid #e9ecef;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
 
-      .form-label {
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-      }
+    .form-control:focus,
+    .form-select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+      background-color: #f8f9ff;
+    }
 
-      .btn-register {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 8px;
-        padding: 0.85rem 2rem;
-        font-weight: 600;
-        color: white;
-        transition: all 0.3s ease;
-        font-size: 1rem;
-      }
+    .form-label {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
 
-      .btn-register:hover {
-        transform: scale(1.02);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        color: white;
-      }
+    .btn-register {
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 8px;
+      padding: 0.85rem 2rem;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+    }
 
-      .progress-bar-custom {
-        height: 6px;
-        border-radius: 4px;
-      }
+    .btn-register:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
 
-      .form-text {
-        font-size: 0.85rem;
-        margin-top: 0.3rem;
-      }
+    .progress-bar-custom {
+      height: 6px;
+      border-radius: 4px;
+    }
 
-      .alert {
-        border-radius: 8px;
-        border: none;
-        margin-bottom: 1.5rem;
-      }
+    .form-text {
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
 
-      .alert-danger {
-        background-color: #f8d7da;
-        color: #721c24;
-      }
+    .form-text {
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
 
-      .alert-success {
-        background-color: #d4edda;
-        color: #155724;
-      }
+    .register-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
 
-      .register-link {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-      }
+    .register-link:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
 
-      .register-link:hover {
-        color: #764ba2;
-        text-decoration: underline;
-      }
+    .icon-register {
+      color: #667eea;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
 
-      .icon-register {
-        color: #667eea;
-        margin-right: 0.5rem;
-      }
-    </style>
-  </head>
+<body class="has-fixed-header">
+  <div th:replace="~{headerbar-admin :: auth-nav}"></div>
+  <script th:inline="javascript"></script>
 
-  <body class="has-fixed-header">
-    <div th:replace="~{headerbar-admin :: auth-nav}"></div>
-    <script th:inline="javascript"></script>
+  <div class="container" style="max-width: 650px; margin: 2rem auto">
+    <div class="card register-card">
+      <div class="card-body p-5">
+        <div class="mb-3">
+          <a th:href="@{/admin/dashboard-admin}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px">
+            <i class="fas fa-arrow-left me-1"></i> Dashboard
+          </a>
+        </div>
+        <div class="text-center mb-4">
+          <i class="fas fa-user-plus icon-register" style="font-size: 2.5rem"></i>
+          <h2 class="card-title-register mt-3">Create Your Account</h2>
+          <p class="card-subtitle">Join our banking community today</p>
+        </div>
 
-    <div class="container" style="max-width: 650px; margin: 2rem auto">
-      <div class="card register-card">
-        <div class="card-body p-5">
-          <div class="mb-3">
-            <a
-              th:href="@{/admin/dashboard-admin}"
-              class="btn btn-outline-secondary btn-sm"
-              style="border-radius: 8px"
-            >
-              <i class="fas fa-arrow-left me-1"></i> Dashboard
-            </a>
-          </div>
-          <div class="text-center mb-4">
-            <i
-              class="fas fa-user-plus icon-register"
-              style="font-size: 2.5rem"
-            ></i>
-            <h2 class="card-title-register mt-3">Create Your Account</h2>
-            <p class="card-subtitle">Join our banking community today</p>
+        <!-- Toast Container -->
+        <div class="toast-container">
+          <!-- Error Toast -->
+          <div th:if="${error}" class="custom-toast error-toast">
+            <i class="fas fa-exclamation-circle" style="font-size: 1.4rem;"></i>
+            <div class="message" th:text="${error}"></div>
+            <button type="button" class="btn-close"
+              style="background:none; border:none; color:#95a5a6; font-size:1.2rem; cursor:pointer;"
+              onclick="this.parentElement.remove()">&times;</button>
           </div>
 
-          <div
-            th:if="${error}"
-            class="alert alert-danger d-flex align-items-center"
-            th:text="${error}"
-          >
-            <i class="fas fa-exclamation-circle mr-2"></i>
+          <!-- Success Toast -->
+          <div th:if="${success}" class="custom-toast success-toast">
+            <i class="fas fa-check-circle" style="font-size: 1.4rem;"></i>
+            <div class="message" th:text="${success}"></div>
+            <button type="button" class="btn-close"
+              style="background:none; border:none; color:#95a5a6; font-size:1.2rem; cursor:pointer;"
+              onclick="this.parentElement.remove()">&times;</button>
           </div>
-          <div th:if="${success}" class="alert alert-success">
-            <i class="fas fa-check-circle mr-2"></i>
-            <span th:text="${success}"></span>
-          </div>
+        </div>
 
-          <form
-            th:action="@{/admin/register-admin}"
-            th:object="${admin}"
-            method="post"
-            id="registerForm"
-          >
-            <input
-              type="hidden"
-              th:if="${_csrf != null}"
-              th:name="${_csrf.parameterName}"
-              th:value="${_csrf.token}"
-            />
+        <form th:action="@{/admin/register-admin}" th:object="${admin}" method="post" id="registerForm">
+          <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <label for="fname" class="form-label">
-                  <i class="fas fa-user icon-register"></i> First Name
-                </label>
-                <input
-                  type="text"
-                  th:field="*{fname}"
-                  class="form-control"
-                  id="fname"
-                  placeholder="First name"
-                  required
-                />
-              </div>
-              <div class="col-md-6">
-                <label for="lname" class="form-label">
-                  <i class="fas fa-user icon-register"></i> Last Name
-                </label>
-                <input
-                  type="text"
-                  th:field="*{lname}"
-                  class="form-control"
-                  id="lname"
-                  placeholder="Last name"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <label for="email" class="form-label">
-                <i class="fas fa-envelope icon-register"></i> Email Address
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="fname" class="form-label">
+                <i class="fas fa-user icon-register"></i> First Name
               </label>
-              <input
-                type="email"
-                th:field="*{email}"
-                class="form-control"
-                id="email"
-                placeholder="you@example.com"
-                required
-              />
+              <input type="text" th:field="*{fname}" class="form-control" id="fname" placeholder="First name"
+                required />
             </div>
+            <div class="col-md-6">
+              <label for="lname" class="form-label">
+                <i class="fas fa-user icon-register"></i> Last Name
+              </label>
+              <input type="text" th:field="*{lname}" class="form-control" id="lname" placeholder="Last name" required />
+            </div>
+          </div>
 
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <label for="password" class="form-label">
-                  <i class="fas fa-lock icon-register"></i> Password
-                </label>
-                <input
-                  type="password"
-                  th:field="*{password}"
-                  class="form-control"
-                  id="password"
-                  placeholder="Min. 6 characters"
-                  minlength="6"
-                  required
-                />
-                <div class="progress mt-2" style="height: 6px">
-                  <div
-                    id="pwStrength"
-                    class="progress-bar progress-bar-custom"
-                    role="progressbar"
-                    style="width: 0%"
-                  ></div>
+          <div class="mb-4">
+            <label for="email" class="form-label">
+              <i class="fas fa-envelope icon-register"></i> Email Address
+            </label>
+            <input type="email" th:field="*{email}" class="form-control" id="email" placeholder="you@example.com"
+              required />
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="password" class="form-label">
+                <i class="fas fa-lock icon-register"></i> Password
+              </label>
+              <input type="password" th:field="*{password}" class="form-control" id="password"
+                placeholder="Min. 6 characters" minlength="6" required />
+              <div class="progress mt-2" style="height: 6px">
+                <div id="pwStrength" class="progress-bar progress-bar-custom" role="progressbar" style="width: 0%">
                 </div>
-                <small class="form-text text-muted"
-                  >Use uppercase, numbers & symbols for strength</small
-                >
               </div>
-              <div class="col-md-6">
-                <label for="confirmPassword" class="form-label">
-                  <i class="fas fa-lock icon-register"></i> Confirm Password
-                </label>
-                <input
-                  type="password"
-                  class="form-control"
-                  id="confirmPassword"
-                  placeholder="Confirm password"
-                  required
-                />
-                <small id="pwMatch" class="form-text text-muted"></small>
-              </div>
+              <small class="form-text text-muted">Use uppercase, numbers & symbols for strength</small>
             </div>
-
-            <div class="mb-4">
-              <label for="phone" class="form-label">
-                <i class="fas fa-phone icon-register"></i> Phone Number
+            <div class="col-md-6">
+              <label for="confirmPassword" class="form-label">
+                <i class="fas fa-lock icon-register"></i> Confirm Password
               </label>
-              <input
-                type="text"
-                th:field="*{phone}"
-                class="form-control"
-                id="phone"
-                placeholder="+91 9999999999"
-              />
+              <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm password"
+                required />
+              <small id="pwMatch" class="form-text text-muted"></small>
             </div>
+          </div>
 
-            <div class="mb-4">
-              <label for="address" class="form-label">
-                <i class="fas fa-map-marker-alt icon-register"></i> Address
+          <div class="mb-4">
+            <label for="phone" class="form-label">
+              <i class="fas fa-phone icon-register"></i> Phone Number
+            </label>
+            <input type="text" th:field="*{phone}" class="form-control" id="phone" placeholder="+91 9999999999" />
+          </div>
+
+          <div class="mb-4">
+            <label for="address" class="form-label">
+              <i class="fas fa-map-marker-alt icon-register"></i> Address
+            </label>
+            <input type="text" th:field="*{address}" class="form-control" id="address"
+              placeholder="Street, City, State" />
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="dob" class="form-label">
+                <i class="fas fa-calendar icon-register"></i> Date of Birth
               </label>
-              <input
-                type="text"
-                th:field="*{address}"
-                class="form-control"
-                id="address"
-                placeholder="Street, City, State"
-              />
+              <input type="date" th:field="*{dob}" class="form-control" id="dob" />
             </div>
-
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <label for="dob" class="form-label">
-                  <i class="fas fa-calendar icon-register"></i> Date of Birth
-                </label>
-                <input
-                  type="date"
-                  th:field="*{dob}"
-                  class="form-control"
-                  id="dob"
-                />
-              </div>
-              <div class="col-md-6">
-                <label for="adharcard" class="form-label">
-                  <i class="fas fa-id-card icon-register"></i> Aadhar Card
-                </label>
-                <input
-                  type="text"
-                  th:field="*{adharcard}"
-                  class="form-control"
-                  id="adharcard"
-                  placeholder="12-digit number"
-                />
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <label for="adminRole" class="form-label">
-                <i class="fas fa-shield-alt icon-register"></i> Role
+            <div class="col-md-6">
+              <label for="adharcard" class="form-label">
+                <i class="fas fa-id-card icon-register"></i> Aadhar Card
               </label>
-              <select
-                th:field="*{adminRole}"
-                class="form-select"
-                id="adminRole"
-                required
-              >
-                <option value="">-- Select Role --</option>
-                <option
-                  th:each="role : ${allowedRoles}"
-                  th:value="${role.name()}"
-                  th:text="${
+              <input type="text" th:field="*{adharcard}" class="form-control" id="adharcard"
+                placeholder="12-digit number" />
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="adminRole" class="form-label">
+              <i class="fas fa-shield-alt icon-register"></i> Role
+            </label>
+            <select th:field="*{adminRole}" class="form-select" id="adminRole" required>
+              <option value="">-- Select Role --</option>
+              <option th:each="role : ${allowedRoles}" th:value="${role.name()}" th:text="${
                     role.name() == 'MANAGER'        ? 'Manager — Customer actions only' :
                     role.name() == 'ADMINISTRATIVE' ? 'Administrative — Admin management only' :
                     role.name() == 'DIRECTOR'       ? 'Director — Full Access (Admin + Manager)' :
                     role.name()
-                  }"
-                ></option>
-              </select>
-              <small
-                class="form-text text-muted"
-                th:if="${#lists.size(allowedRoles) > 1}"
-              >
-                <strong>Manager</strong> — create accounts &amp; customers
-                &nbsp;|&nbsp; <strong>Administrative</strong> — manage admin
-                accounts &nbsp;|&nbsp; <strong>Director</strong> — all rights
-              </small>
-            </div>
+                  }"></option>
+            </select>
+            <small class="form-text text-muted" th:if="${#lists.size(allowedRoles) > 1}">
+              <strong>Manager</strong> — create accounts &amp; customers
+              &nbsp;|&nbsp; <strong>Administrative</strong> — manage admin
+              accounts &nbsp;|&nbsp; <strong>Director</strong> — all rights
+            </small>
+          </div>
 
-            <button
-              type="submit"
-              id="submitBtn"
-              class="btn btn-register w-100 mb-3"
-              disabled
-            >
-              <i class="fas fa-user-check"></i> Create Account
-            </button>
+          <button type="submit" id="submitBtn" class="btn btn-register w-100 mb-3" disabled>
+            <i class="fas fa-user-check"></i> Create Account
+          </button>
 
-            <div class="text-center">
-              <a th:href="@{/admin/dashboard-admin}" class="register-link">
-                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-              </a>
-            </div>
-          </form>
-        </div>
+          <div class="text-center">
+            <a th:href="@{/admin/dashboard-admin}" class="register-link">
+              <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+          </div>
+        </form>
       </div>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      (function () {
-        const password = document.getElementById("password");
-        const confirm = document.getElementById("confirmPassword");
-        const pwStrength = document.getElementById("pwStrength");
-        const pwMatch = document.getElementById("pwMatch");
-        const submitBtn = document.getElementById("submitBtn");
-        const form = document.getElementById("registerForm");
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function () {
+      const password = document.getElementById("password");
+      const confirm = document.getElementById("confirmPassword");
+      const pwStrength = document.getElementById("pwStrength");
+      const pwMatch = document.getElementById("pwMatch");
+      const submitBtn = document.getElementById("submitBtn");
+      const form = document.getElementById("registerForm");
 
-        function strengthScore(pw) {
-          let score = 0;
-          if (!pw) return 0;
-          if (pw.length >= 6) score += 1;
-          if (/[A-Z]/.test(pw)) score += 1;
-          if (/[0-9]/.test(pw)) score += 1;
-          if (/[^A-Za-z0-9]/.test(pw)) score += 1;
-          return score;
+      function strengthScore(pw) {
+        let score = 0;
+        if (!pw) return 0;
+        if (pw.length >= 6) score += 1;
+        if (/[A-Z]/.test(pw)) score += 1;
+        if (/[0-9]/.test(pw)) score += 1;
+        if (/[^A-Za-z0-9]/.test(pw)) score += 1;
+        return score;
+      }
+
+      function updateStrength() {
+        const s = strengthScore(password.value);
+        const percent = (s / 4) * 100;
+        pwStrength.style.width = percent + "%";
+        pwStrength.className =
+          "progress-bar progress-bar-custom " +
+          (s <= 1 ? "bg-danger" : s === 2 ? "bg-warning" : "bg-success");
+      }
+
+      function updateMatch() {
+        if (!confirm.value && !password.value) {
+          pwMatch.textContent = "";
+          return;
         }
-
-        function updateStrength() {
-          const s = strengthScore(password.value);
-          const percent = (s / 4) * 100;
-          pwStrength.style.width = percent + "%";
-          pwStrength.className =
-            "progress-bar progress-bar-custom " +
-            (s <= 1 ? "bg-danger" : s === 2 ? "bg-warning" : "bg-success");
+        if (password.value === confirm.value) {
+          pwMatch.textContent = "✓ Passwords match";
+          pwMatch.className = "form-text text-success";
+          return true;
+        } else {
+          pwMatch.textContent = "✗ Passwords do not match";
+          pwMatch.className = "form-text text-danger";
+          return false;
         }
+      }
 
-        function updateMatch() {
-          if (!confirm.value && !password.value) {
-            pwMatch.textContent = "";
-            return;
-          }
-          if (password.value === confirm.value) {
-            pwMatch.textContent = "✓ Passwords match";
-            pwMatch.className = "form-text text-success";
-            return true;
-          } else {
-            pwMatch.textContent = "✗ Passwords do not match";
-            pwMatch.className = "form-text text-danger";
-            return false;
-          }
+      function updateFormState() {
+        const match = updateMatch();
+        updateStrength();
+        const requiredFilled =
+          document.getElementById("fname").value.trim() &&
+          document.getElementById("lname").value.trim() &&
+          document.getElementById("email").value.trim() &&
+          password.value.trim() &&
+          confirm.value.trim();
+        submitBtn.disabled = !(requiredFilled && match);
+      }
+
+      password.addEventListener("input", updateFormState);
+      confirm.addEventListener("input", updateFormState);
+      document
+        .getElementById("fname")
+        .addEventListener("input", updateFormState);
+      document
+        .getElementById("lname")
+        .addEventListener("input", updateFormState);
+      document
+        .getElementById("email")
+        .addEventListener("input", updateFormState);
+
+      form.addEventListener("submit", function (e) {
+        if (submitBtn.disabled) {
+          e.preventDefault();
         }
+      });
+    })();
 
-        function updateFormState() {
-          const match = updateMatch();
-          updateStrength();
-          const requiredFilled =
-            document.getElementById("fname").value.trim() &&
-            document.getElementById("lname").value.trim() &&
-            document.getElementById("email").value.trim() &&
-            password.value.trim() &&
-            confirm.value.trim();
-          submitBtn.disabled = !(requiredFilled && match);
-        }
+    // Auto-dismiss toasts after 5 seconds
+    document.addEventListener('DOMContentLoaded', () => {
+      const toasts = document.querySelectorAll('.custom-toast');
+      toasts.forEach(toast => {
+        setTimeout(() => {
+          toast.style.animation = 'fadeOutRight 0.3s ease forwards';
+          setTimeout(() => toast.remove(), 300);
+        }, 5000);
+      });
+    });
+  </script>
+</body>
 
-        password.addEventListener("input", updateFormState);
-        confirm.addEventListener("input", updateFormState);
-        document
-          .getElementById("fname")
-          .addEventListener("input", updateFormState);
-        document
-          .getElementById("lname")
-          .addEventListener("input", updateFormState);
-        document
-          .getElementById("email")
-          .addEventListener("input", updateFormState);
-
-        form.addEventListener("submit", function (e) {
-          if (submitBtn.disabled) {
-            e.preventDefault();
-          }
-        });
-      })();
-    </script>
-  </body>
 </html>

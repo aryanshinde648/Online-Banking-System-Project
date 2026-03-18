@@ -21,6 +21,7 @@ import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.AdminDto;
 import com.obs.Online_Banking_System.dto.CustomerDto;
 import com.obs.Online_Banking_System.dto.TransactionDto;
+import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
 import com.obs.Online_Banking_System.enumDto.AdminRole;
 import com.obs.Online_Banking_System.service.AccountService;
@@ -248,9 +249,9 @@ public class AdminController {
         session.setAttribute("adharcard", adminDto.getAdharcard());
         session.setAttribute("adminRole", adminDto.getAdminRole() != null ? adminDto.getAdminRole().name() : "MANAGER");
 
-        // wait for 10 seconds before redirecting to dashboard
+        // wait for 5 seconds before redirecting to dashboard
         model.addAttribute("success", "Login successful");
-        model.addAttribute("redirectDelayMs", 10);
+        // model.addAttribute("redirectDelayMs", 5);
         model.addAttribute("redirectUrl", "/admin/dashboard-admin");
 
         return "login-admin";
@@ -371,6 +372,31 @@ public class AdminController {
         }
         // Data loaded via AJAX
         return "admin-all-transactions";
+    }
+
+    /** Admin: Deposit &amp; Withdraw page */
+    @GetMapping("/transact")
+    public String transactPage(HttpSession session, RedirectAttributes ra) {
+        if (session.getAttribute("loggedInAdmin") == null) {
+            ra.addFlashAttribute("errorMessage", "Please login first");
+            return "redirect:/login-admin";
+        }
+        return "admin-transact";
+    }
+
+    /** Admin: API — only DEPOSIT and WITHDRAW transactions */
+    @GetMapping("/api/transactions/deposit-withdraw")
+    @ResponseBody
+    public ResponseEntity<List<TransactionDto>> getDepositWithdrawTransactionsAPI(HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+        List<TransactionDto> all = transactionService.findAllTransactions();
+        List<TransactionDto> filtered = all.stream()
+                .filter(t -> t.getTransactionType() != null &&
+                        (t.getTransactionType().name().equals("DEPOSIT") ||
+                         t.getTransactionType().name().equals("WITHDRAW")))
+                .toList();
+        return ResponseEntity.ok(filtered);
     }
 
     /** Admin: All customers page */
@@ -593,6 +619,104 @@ public class AdminController {
         }
 
         return "redirect:/admin/profile";
+    }
+
+    /**
+     * POST /admin/api/account/{id}/lock — locks an account
+     */
+    @PostMapping("/api/account/{id}/lock")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> lockAccount(@PathVariable Long id, HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+        Map<String, Object> result = new HashMap<>();
+        try {
+            AccountDto acc = accountService.lockAccount(id);
+            result.put("locked", acc.isLocked());
+            result.put("message", "Account locked successfully.");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    /**
+     * POST /admin/api/account/{id}/unlock — unlocks an account
+     */
+    @PostMapping("/api/account/{id}/unlock")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> unlockAccount(@PathVariable Long id, HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+        Map<String, Object> result = new HashMap<>();
+        try {
+            AccountDto acc = accountService.unlockAccount(id);
+            result.put("locked", acc.isLocked());
+            result.put("message", "Account unlocked successfully.");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    /**
+     * POST /admin/api/account/{id}/deposit — Admin bank deposit
+     */
+    @PostMapping("/api/account/{id}/deposit")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> adminDeposit(@PathVariable Long id,
+            @RequestBody Map<String, String> payload, HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+        Map<String, Object> result = new HashMap<>();
+        try {
+            AccountDto account = accountService.getAccountById(id);
+            String email = account.getCustomer().getEmail();
+
+            TransactionRequestDto tx = new TransactionRequestDto();
+            tx.setAmount(new java.math.BigDecimal(payload.get("amount")));
+            tx.setRemark("Bank deposit");
+            tx.setTargetAccountNo(account.getAccountNumber());
+
+            String msg = transactionService.deposit(tx, email);
+            result.put("success", true);
+            result.put("message", msg);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    /**
+     * POST /admin/api/account/{id}/withdraw — Admin bank withdraw
+     */
+    @PostMapping("/api/account/{id}/withdraw")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> adminWithdraw(@PathVariable Long id,
+            @RequestBody Map<String, String> payload, HttpSession session) {
+        if (!isLoggedIn(session))
+            return ResponseEntity.status(401).build();
+        Map<String, Object> result = new HashMap<>();
+        try {
+            AccountDto account = accountService.getAccountById(id);
+            String email = account.getCustomer().getEmail();
+
+            TransactionRequestDto tx = new TransactionRequestDto();
+            tx.setAmount(new java.math.BigDecimal(payload.get("amount")));
+            tx.setRemark("bank withdraw");
+            tx.setTargetAccountNo(account.getAccountNumber());
+
+            String msg = transactionService.withdraw(tx, email);
+            result.put("success", true);
+            result.put("message", msg);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(result);
+        }
     }
 
 }

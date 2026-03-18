@@ -7,14 +7,14 @@ import com.obs.Online_Banking_System.dto.CustomerDto;
 
 public interface CustomerService {
 
-    public Map<String,Object> registerCustomerMap(CustomerDto customerDto);
-    
+    public Map<String, Object> registerCustomerMap(CustomerDto customerDto);
+
     public CustomerDto registerCustomer(CustomerDto customerDto);
 
     public CustomerDto getCustomerById(Long id);
 
     public CustomerDto getCustomerByEmail(String email);
-    
+
     public CustomerDto updateCustomerByEmail(String email, CustomerDto customerDto);
 
     public CustomerDto updateCustomerById(Long id, CustomerDto customerDto);
@@ -32,5 +32,7 @@ public interface CustomerService {
     List<CustomerDto> getAllCustomers();
 
     Long getAllCustomerCount();
+
+    String changePin(Long id, String oldPin, String newPin);
 
 }

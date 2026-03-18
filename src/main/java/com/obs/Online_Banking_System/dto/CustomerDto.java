@@ -34,4 +34,6 @@ public class CustomerDto {
 
     private Long adharcard;
 
+    private String pin;
+
 }

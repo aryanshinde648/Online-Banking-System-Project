@@ -42,7 +42,7 @@ public class Account {
     @Column(name = "accountType")
     private AccountType accountType;
 
-    @Column(name = "createdAt" , nullable = false)
+    @Column(name = "createdAt", nullable = false)
     private Instant createdAt;
 
     @OneToOne
@@ -54,5 +54,8 @@ public class Account {
 
     @Column(name = "ifsc")
     private String ifsc = "ABIN0112233";
-    
+
+    @Column(name = "locked", nullable = false)
+    private boolean locked = false;
+
 }
