@@ -15,10 +15,37 @@ spring:
     properties:
       hibernate:
         '[format_sql]': false
-        dialect: org.hibernate.dialect.MySQLDialect 
+        dialect: org.hibernate.dialect.MySQLDialect
         jdbc:
           '[batch_size]': 20
     open-in-view: false
 
+  # ── Email / SMTP ────────────────────────────────────────────────────────────
+  # To generate a Gmail App Password:
+  #   1. Enable 2-Step Verification on your Google account
+  #   2. Go to https://myaccount.google.com/apppasswords
+  #   3. Generate a new App Password  → paste the 16-char password below
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: beautifulcake3002@gmail.com       # ← replace with your Gmail address
+    password: govv drlb oivk yuma     # ← replace with your 16-char App Password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        transport:
+          protocol: smtp
+
 server:
   port: 3030
+
+# ── OTP Settings ──────────────────────────────────────────────────────────────
+app:
+  otp:
+    expiry-minutes: 5
+    resend-cooldown-seconds: 60
+    max-attempts: 3

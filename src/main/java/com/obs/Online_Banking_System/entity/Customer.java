@@ -49,4 +49,8 @@ public class Customer {
 
     @Column(name = "pin")
     private String pin;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
 }
+

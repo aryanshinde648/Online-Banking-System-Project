@@ -490,14 +490,21 @@
             History
           </h5>
           <!-- PDF Download split-button -->
-          <div class="btn-group" id="pdfDownloadGroup">
-            <a href="/customer/api/download-statement" class="btn btn-outline-primary btn-sm" id="btnDownloadFull"
-              title="Download full statement">
-              <i class="fas fa-file-pdf me-1"></i> Download PDF
-            </a>
-            <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split"
-              id="pdfDropdownBtn" aria-expanded="false" onclick="togglePdfDropdown()"
-              title="Custom date range"></button>
+          <div class="d-flex align-items-center gap-2">
+            <div class="btn-group" id="pdfDownloadGroup">
+              <a href="/customer/api/download-statement" class="btn btn-outline-primary btn-sm" id="btnDownloadFull"
+                title="Download full statement">
+                <i class="fas fa-file-pdf me-1"></i> Download PDF
+              </a>
+              <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split"
+                id="pdfDropdownBtn" aria-expanded="false" onclick="togglePdfDropdown()"
+                title="Custom date range"></button>
+            </div>
+            <!-- Email Statement button -->
+            <button id="btnEmailStatement" class="btn btn-outline-success btn-sm"
+              title="Send statement to your email" onclick="emailStatement()">
+              <i class="fas fa-envelope me-1"></i> Email Statement
+            </button>
           </div>
 
           <!-- Custom date-range panel (hidden by default) -->
@@ -568,13 +575,26 @@
                     color: #fff;
                     border: none;
                     border-radius: 8px;
-                    padding: 0.4rem 0.9rem;
+                    padding: 0.4rem 0.6rem;
                     font-size: 0.8rem;
                     font-weight: 600;
                     cursor: pointer;
                     flex: 1;
                   ">
                 <i class="fas fa-download me-1"></i> Download
+              </button>
+              <button onclick="emailCustomStatement(this)" style="
+                    background: #22c55e;
+                    color: #fff;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 0.4rem 0.6rem;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    flex: 1;
+                  ">
+                <i class="fas fa-envelope me-1"></i> Email
               </button>
               <button onclick="togglePdfDropdown()" style="
                     background: #f1f5f9;
@@ -797,6 +817,50 @@
     }
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ── Email Statement ───────────────────────────────────────────────────────
+    async function emailStatement(btnElement = document.getElementById("btnEmailStatement"), fromDate = null, toDate = null) {
+      const origHtml = btnElement.innerHTML;
+      btnElement.disabled = true;
+      btnElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending…';
+      try {
+        let url = "/customer/api/send-statement";
+        const params = [];
+        if (fromDate) params.push("from=" + fromDate);
+        if (toDate) params.push("to=" + toDate);
+        if (params.length) url += "?" + params.join("&");
+
+        const res = await fetch(url, { method: "POST" });
+        const data = await res.json();
+        if (res.ok && data.message) {
+          showStatementToast("✅ " + data.message, "success");
+        } else {
+          showStatementToast("❌ " + (data.error || "Failed to send statement."), "danger");
+        }
+      } catch (e) {
+        showStatementToast("❌ Network error. Please try again.", "danger");
+      } finally {
+        btnElement.disabled = false;
+        btnElement.innerHTML = origHtml;
+      }
+    }
+
+    function emailCustomStatement(btn) {
+      const from = document.getElementById("pdfFrom").value;
+      const to = document.getElementById("pdfTo").value;
+      emailStatement(btn, from, to);
+      document.getElementById("pdfDatePanel").style.display = "none";
+    }
+
+    function showStatementToast(msg, type) {
+      const t = document.createElement("div");
+      t.className = `alert alert-${type} shadow-sm`;
+      t.style.cssText = "position:fixed;top:1.2rem;right:1.2rem;z-index:9999;min-width:300px;font-size:.88rem;font-weight:600;border-radius:10px;";
+      t.innerHTML = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 4500);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const welcome = document.getElementById("welcome");
     const profileBtn = document.getElementById("profileBtn");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -827,7 +891,8 @@
     });
 
     let refreshTimer = null;
-    let myAccountId = null; // JPA id of the logged-in customer's account
+    let myAccountId = null;    // JPA id of the logged-in customer's account
+    let currentBalance = null; // Tracks live balance for pre-flight checks
 
     async function loadAccount(silent = false) {
       try {
@@ -850,6 +915,7 @@
           acc.accountNumber || "-";
         // acc.balance is a number from JSON — parse safely
         const bal = parseFloat(acc.balance);
+        currentBalance = isNaN(bal) ? 0 : bal; // keep in sync for pre-flight check
         document.getElementById("accBalance").textContent = isNaN(bal)
           ? "0.00"
           : bal.toFixed(2);
@@ -1207,25 +1273,32 @@
 
         if (res.ok) {
           closePinModal();
-          msgEl.textContent =
-            json.message || "Transfer completed successfully!";
+          msgEl.textContent = json.message || "Transfer completed successfully!";
           msgEl.classList.remove("hidden", "error");
           msgEl.classList.add("success");
           document.getElementById("transferForm").reset();
-          await loadAccount(); // immediate — no delay
+          await loadAccount(); // refresh balance immediately
         } else {
-          // Wrong PIN → shake and show error
-          pinBoxes.classList.remove("shake");
-          void pinBoxes.offsetWidth; // reflow to restart animation
-          pinBoxes.classList.add("shake");
-          pinErrorMsg.textContent =
-            json.error || "Invalid PIN. Please try again.";
-          pinInputs.forEach((b) => {
-            b.value = "";
-            b.classList.remove("filled");
-          });
-          pinInputs[0].focus();
-          pinConfirmBtn.disabled = true;
+          const errMsg = json.error || "Transaction failed. Please try again.";
+          const isPinError = errMsg.toLowerCase().includes("pin");
+
+          if (isPinError) {
+            // Wrong PIN → shake + show in modal
+            pinBoxes.classList.remove("shake");
+            void pinBoxes.offsetWidth;
+            pinBoxes.classList.add("shake");
+            pinErrorMsg.textContent = errMsg;
+            pinInputs.forEach((b) => { b.value = ""; b.classList.remove("filled"); });
+            pinInputs[0].focus();
+            pinConfirmBtn.disabled = true;
+          } else {
+            // Insufficient balance, locked, etc. → close modal, show on form
+            closePinModal();
+            msgEl.textContent = "⚠️ " + errMsg;
+            msgEl.classList.remove("hidden", "success");
+            msgEl.classList.add("error");
+            await loadAccount(); // refresh balance in case it changed
+          }
         }
       } catch (err) {
         pinErrorMsg.textContent = "Connection error. Please try again.";
@@ -1245,13 +1318,33 @@
         msgEl.classList.add("hidden");
         msgEl.classList.remove("success", "error");
 
+        const enteredAmount = parseFloat(form.amount.value);
+
+        // ── Pre-flight: check balance BEFORE showing PIN modal ──────────────
+        if (currentBalance !== null && enteredAmount > currentBalance) {
+          msgEl.textContent =
+            `⚠️ Insufficient balance. Your current balance is ₹${currentBalance.toFixed(2)}, ` +
+            `but you are trying to transfer ₹${enteredAmount.toFixed(2)}.`;
+          msgEl.classList.remove("hidden", "success");
+          msgEl.classList.add("error");
+          return; // block PIN modal
+        }
+
+        if (enteredAmount <= 0) {
+          msgEl.textContent = "⚠️ Please enter a valid amount greater than ₹0.";
+          msgEl.classList.remove("hidden", "success");
+          msgEl.classList.add("error");
+          return;
+        }
+
         const data = {
-          amount: parseFloat(form.amount.value),
+          amount: enteredAmount,
           targetAccountNo: parseInt(form.targetAccountNo.value),
           remark: form.remark.value,
         };
         openPinModal(data);
       });
+
 
     document
       .getElementById("createAccountForm")

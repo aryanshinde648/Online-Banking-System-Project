@@ -1,6 +1,7 @@
 package com.obs.Online_Banking_System.util;
 
 import java.awt.Color;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,7 +36,7 @@ public class PdfStatementGenerator {
     private static final DateTimeFormatter D_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy")
             .withZone(ZoneId.systemDefault());
 
-    // ── Public entry-point ─────────────────────────────────────────────────────
+    // ── Public entry-point (HttpServletResponse) ───────────────────────────────
     public static void generate(
             List<Transaction> transactions,
             Account account,
@@ -44,59 +45,62 @@ public class PdfStatementGenerator {
             LocalDate to,
             HttpServletResponse response) throws Exception {
 
-        // ----------------------------------------------------------
-        // Filter by date range (if supplied)
-        // ----------------------------------------------------------
-        List<Transaction> filtered = transactions;
-        if (from != null || to != null) {
-            filtered = transactions.stream().filter(t -> {
-                LocalDate txDate = t.getTimestamp()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate();
-                boolean afterFrom = (from == null) || !txDate.isBefore(from);
-                boolean beforeTo = (to == null) || !txDate.isAfter(to);
-                return afterFrom && beforeTo;
-            }).toList();
-        }
+        List<Transaction> filtered = filterByDate(transactions, from, to);
 
-        // ----------------------------------------------------------
-        // Document setup
-        // ----------------------------------------------------------
         Document doc = new Document(PageSize.A4, 36, 36, 36, 50);
         PdfWriter writer = PdfWriter.getInstance(doc, response.getOutputStream());
-
-        // Page numbers in footer
         writer.setPageEvent(new FooterEvent());
-
         doc.open();
 
-        // ----------------------------------------------------------
-        // 1. Branded header banner
-        // ----------------------------------------------------------
         addHeader(doc, writer, from, to);
-
         doc.add(Chunk.NEWLINE);
-
-        // ----------------------------------------------------------
-        // 2. Account information table
-        // ----------------------------------------------------------
         addAccountInfo(doc, account, customer);
-
         doc.add(Chunk.NEWLINE);
-
-        // ----------------------------------------------------------
-        // 3. Transaction table
-        // ----------------------------------------------------------
         addTransactionTable(doc, filtered);
-
         doc.add(Chunk.NEWLINE);
-
-        // ----------------------------------------------------------
-        // 4. Summary footer
-        // ----------------------------------------------------------
         addSummary(doc, filtered, account.getBalance());
 
         doc.close();
+    }
+
+    // ── Public entry-point (byte[] — for email attachments) ────────────────────
+    public static byte[] generateToBytes(
+            List<Transaction> transactions,
+            Account account,
+            Customer customer,
+            LocalDate from,
+            LocalDate to) throws Exception {
+
+        List<Transaction> filtered = filterByDate(transactions, from, to);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document doc = new Document(PageSize.A4, 36, 36, 36, 50);
+        PdfWriter writer = PdfWriter.getInstance(doc, baos);
+        writer.setPageEvent(new FooterEvent());
+        doc.open();
+
+        addHeader(doc, writer, from, to);
+        doc.add(Chunk.NEWLINE);
+        addAccountInfo(doc, account, customer);
+        doc.add(Chunk.NEWLINE);
+        addTransactionTable(doc, filtered);
+        doc.add(Chunk.NEWLINE);
+        addSummary(doc, filtered, account.getBalance());
+
+        doc.close();
+        return baos.toByteArray();
+    }
+
+    // ── Date filtering helper ──────────────────────────────────────────────────
+    private static List<Transaction> filterByDate(List<Transaction> transactions,
+            LocalDate from, LocalDate to) {
+        if (from == null && to == null) return transactions;
+        return transactions.stream().filter(t -> {
+            LocalDate txDate = t.getTimestamp().atZone(ZoneId.systemDefault()).toLocalDate();
+            boolean afterFrom = (from == null) || !txDate.isBefore(from);
+            boolean beforeTo  = (to   == null) || !txDate.isAfter(to);
+            return afterFrom && beforeTo;
+        }).toList();
     }
 
     // ── Section 1 — Header banner ──────────────────────────────────────────────
@@ -107,14 +111,17 @@ public class PdfStatementGenerator {
         PdfContentByte cb = writer.getDirectContentUnder();
         cb.saveState();
         cb.setColorFill(HEADER_BG);
-        cb.rectangle(doc.left() - 36, doc.top() + 36,
-                doc.getPageSize().getWidth(), 80);
+        // iText rectangle(x, y, width, height) uses bottom-left corner.
+        // Page is A4: 595.0f wide by 842.0f high.
+        // We want a header of height 90 at the top of the page.
+        cb.rectangle(0, doc.getPageSize().getHeight() - 100,
+                doc.getPageSize().getWidth(), 100);
         cb.fill();
         cb.restoreState();
 
         // Bank name — large white text
         Font bankFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, Font.NORMAL, Color.WHITE);
-        Paragraph bankName = new Paragraph("🏦  Online Banking System", bankFont);
+        Paragraph bankName = new Paragraph("Online Banking System", bankFont);
         bankName.setSpacingBefore(12f);
         doc.add(bankName);
 
@@ -382,7 +389,7 @@ public class PdfStatementGenerator {
                 new Color(148, 163, 184));
         Paragraph disc = new Paragraph(
                 "This is a computer-generated statement and does not require a signature. "
-                        + "For queries, contact support@abinnovativebank.com",
+                        + "For queries, contact beautifulcake3002@gmail.com",
                 discFont);
         disc.setSpacingBefore(6f);
         doc.add(disc);
@@ -413,7 +420,7 @@ public class PdfStatementGenerator {
             Font footFont = FontFactory.getFont(FontFactory.HELVETICA, 7.5f, Font.NORMAL,
                     new Color(148, 163, 184));
             Phrase footer = new Phrase(
-                    "AB Innovative Bank  |  Confidential  |  Page " + writer.getPageNumber(),
+                    "Online Banking System  |  Confidential  |  Page " + writer.getPageNumber(),
                     footFont);
             ColumnText.showTextAligned(cb, Element.ALIGN_CENTER, footer,
                     (document.left() + document.right()) / 2,
