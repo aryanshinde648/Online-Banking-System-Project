@@ -1,4 +1,4 @@
-# 🏦 Online Banking System — Implementation Report
+# 🏦 Online Banking System
 
 **Stack:** Spring Boot 4.0.2 · Java 17 · MySQL · Thymeleaf · Spring Data JPA · Lombok · MapStruct · OpenPDF · JavaMail · BCrypt
 
