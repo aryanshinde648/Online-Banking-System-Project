@@ -24,7 +24,10 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (adminRepository.findByEmail(ROOT_EMAIL) == null) {
+        // Check if admin already exists by email or aadhar
+        Admin existingAdmin = adminRepository.findByEmail(ROOT_EMAIL);
+        
+        if (existingAdmin == null) {
             Admin root = new Admin();
             root.setFname("Super");
             root.setLname("Admin");
@@ -36,12 +39,16 @@ public class DataInitializer implements CommandLineRunner {
             root.setAdharcard(100000000000L); // placeholder 12-digit Aadhar
             root.setAdminRole(AdminRole.DIRECTOR);
 
-            adminRepository.save(root);
-            log.info("=======================================================");
-            log.info("  Default ADMINISTRATIVE admin created.");
-            log.info("  Email   : {}", ROOT_EMAIL);
-            log.info("  Password: {}", ROOT_PASSWORD);
-            log.info("=======================================================");
+            try {
+                adminRepository.save(root);
+                log.info("=======================================================");
+                log.info("  Default ADMINISTRATIVE admin created.");
+                log.info("  Email   : {}", ROOT_EMAIL);
+                log.info("  Password: {}", ROOT_PASSWORD);
+                log.info("=======================================================");
+            } catch (Exception e) {
+                log.warn("Failed to create default admin: {}. It may already exist in the database.", e.getMessage());
+            }
         } else {
             log.info("Default admin already exists — skipping seed.");
         }

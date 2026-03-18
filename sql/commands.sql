@@ -11,6 +11,8 @@ select * from customers;
 
 select * from transactions;
 
+select * from otp_records;
+
 drop table admins;
 drop table transactions;
 drop table account;
