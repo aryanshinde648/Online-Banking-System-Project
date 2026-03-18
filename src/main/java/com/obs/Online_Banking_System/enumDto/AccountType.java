@@ -2,7 +2,7 @@ package com.obs.Online_Banking_System.enumDto;
 
 public enum AccountType {
     SAVINGS("SAVINGS"),
-    BUSINESS("BUSINESS");
+    CURRENT("CURRENT");
 
     private final String displayType;
 

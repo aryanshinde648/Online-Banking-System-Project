@@ -18,7 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Customer {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,4 +46,7 @@ public class Customer {
 
     @Column(name = "dob")
     private String dob;
+
+    @Column(name = "pin")
+    private String pin;
 }

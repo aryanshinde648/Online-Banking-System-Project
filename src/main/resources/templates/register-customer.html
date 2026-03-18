@@ -93,20 +93,9 @@
             margin-top: 0.3rem;
         }
 
-        .alert {
-            border-radius: 8px;
-            border: none;
-            margin-bottom: 1.5rem;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
+        .form-text {
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
         }
 
         .register-link {
@@ -142,12 +131,25 @@
                     <p class="card-subtitle">Join our banking community today</p>
                 </div>
 
-                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" th:text="${error}">
-                    <i class="fas fa-exclamation-circle mr-2"></i>
-                </div>
-                <div th:if="${success}" class="alert alert-success">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    <span th:text="${success}"></span>
+                <!-- Toast Container -->
+                <div class="toast-container">
+                    <!-- Error Toast -->
+                    <div th:if="${error}" class="custom-toast error-toast">
+                        <i class="fas fa-exclamation-circle" style="font-size: 1.4rem;"></i>
+                        <div class="message" th:text="${error}"></div>
+                        <button type="button" class="btn-close"
+                            style="background:none; border:none; color:#95a5a6; font-size:1.2rem; cursor:pointer;"
+                            onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+
+                    <!-- Success Toast -->
+                    <div th:if="${success}" class="custom-toast success-toast">
+                        <i class="fas fa-check-circle" style="font-size: 1.4rem;"></i>
+                        <div class="message" th:text="${success}"></div>
+                        <button type="button" class="btn-close"
+                            style="background:none; border:none; color:#95a5a6; font-size:1.2rem; cursor:pointer;"
+                            onclick="this.parentElement.remove()">&times;</button>
+                    </div>
                 </div>
 
                 <form th:action="@{/customer/register-customer}" th:object="${customer}" method="post"
@@ -310,8 +312,18 @@
                 }
             });
         })();
-    </script>
 
+        // Auto-dismiss toasts after 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.custom-toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOutRight 0.3s ease forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 
 </html>

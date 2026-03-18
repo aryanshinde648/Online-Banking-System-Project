@@ -2,8 +2,6 @@ package com.obs.Online_Banking_System.service;
 
 import java.util.List;
 
-import com.obs.Online_Banking_System.dto.AccountCreateDto;
-import com.obs.Online_Banking_System.dto.AccountDto;
 import com.obs.Online_Banking_System.dto.TransactionDto;
 import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
@@ -11,7 +9,7 @@ import com.obs.Online_Banking_System.dto.TransactionResponseDto;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface TransactionService {
-    
+
     String deposit(TransactionRequestDto request, String email);
 
     String withdraw(TransactionRequestDto request, String email);
@@ -19,8 +17,6 @@ public interface TransactionService {
     String transfer(TransactionRequestDto request, String email);
 
     List<TransactionResponseDto> getAllTransactions(String email);
-
-    String saveInitialDepositTransaction(AccountCreateDto accountCreateDto, AccountDto accountDto, String email);
 
     Long getAllTransactionsCount();
 

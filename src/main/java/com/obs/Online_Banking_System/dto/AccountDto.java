@@ -34,4 +34,6 @@ public class AccountDto {
     private String ifsc;
 
     private Customer customer;
+
+    private boolean locked;
 }

@@ -326,9 +326,10 @@
         </div>
       </div>
 
-      <!-- Stat Cards Row -->
+      <!-- Stat Cards Grid (3×3) -->
       <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-lg">
+        <!-- Card 1: Total Customers -->
+        <div class="col-sm-6 col-md-4">
           <div class="stat-card">
             <div class="stat-icon stat-icon-purple">
               <i class="fas fa-users"></i>
@@ -343,7 +344,8 @@
             </button>
           </div>
         </div>
-        <div class="col-sm-6 col-lg">
+        <!-- Card 2: Total Accounts -->
+        <div class="col-sm-6 col-md-4">
           <div class="stat-card">
             <div class="stat-icon stat-icon-green">
               <i class="fas fa-wallet"></i>
@@ -358,7 +360,8 @@
             </button>
           </div>
         </div>
-        <div class="col-sm-6 col-lg">
+        <!-- Card 3: Savings Accounts -->
+        <div class="col-sm-6 col-md-4">
           <div class="stat-card">
             <div class="stat-icon stat-icon-orange">
               <i class="fas fa-piggy-bank"></i>
@@ -373,7 +376,8 @@
             </button>
           </div>
         </div>
-        <div class="col-sm-6 col-lg">
+        <!-- Card 4: Current Accounts -->
+        <div class="col-sm-6 col-md-4">
           <div class="stat-card">
             <div class="stat-icon stat-icon-red">
               <i class="fas fa-briefcase"></i>
@@ -388,7 +392,8 @@
             </button>
           </div>
         </div>
-        <div class="col-sm-6 col-lg">
+        <!-- Card 5: Total Transactions -->
+        <div class="col-sm-6 col-md-4">
           <div class="stat-card">
             <div
               class="stat-icon"
@@ -407,7 +412,28 @@
             </button>
           </div>
         </div>
+        <!-- Card 6: Deposit & Withdraw Money -->
+        <div class="col-sm-6 col-md-4">
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="background: rgba(20, 184, 166, 0.12); color: #14b8a6"
+            >
+              <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-label" style="font-size: 1rem; font-weight: 700; color: #1e293b; margin-top: 0.3rem; margin-bottom: 0.5rem;">Deposit &amp; Withdraw</div>
+            <div class="stat-label">Manage customer funds</div>
+            <button
+              class="stat-card-btn"
+              style="border-color: #14b8a6; color: #14b8a6"
+              onclick="window.location = '/admin/transact'"
+            >
+              <i class="fas fa-money-bill-wave me-1"></i>Go to Transactions
+            </button>
+          </div>
+        </div>
       </div>
+
 
       <!-- Customer Table (full width) -->
       <div class="row g-4">

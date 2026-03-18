@@ -18,7 +18,6 @@ import com.obs.Online_Banking_System.repository.AccountRepository;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.CustomerService;
-import com.obs.Online_Banking_System.service.TransactionService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +35,6 @@ public class AccountServiceImpl implements AccountService {
 
     @Autowired
     private CustomerService customerService;
-
-    @Autowired
-    private TransactionService transactionService;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -73,9 +69,6 @@ public class AccountServiceImpl implements AccountService {
 
         accountRepository.save(account);
         AccountDto accountDto = accountConversion.toAccountDto(account);
-
-        transactionService.saveInitialDepositTransaction(accountCreateDto, accountDto, customer.getEmail());
-
         return accountDto;
     }
 
@@ -154,6 +147,24 @@ public class AccountServiceImpl implements AccountService {
     public List<AccountDto> getAllAccounts() {
         List<AccountDto> accList = accountConversion.toAccountDtoList(accountRepository.findAll());
         return accList;
+    }
+
+    @Override
+    public AccountDto lockAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        account.setLocked(true);
+        accountRepository.save(account);
+        return accountConversion.toAccountDto(account);
+    }
+
+    @Override
+    public AccountDto unlockAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        account.setLocked(false);
+        accountRepository.save(account);
+        return accountConversion.toAccountDto(account);
     }
 
 }

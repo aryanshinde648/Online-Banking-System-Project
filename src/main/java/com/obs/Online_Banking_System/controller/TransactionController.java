@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.obs.Online_Banking_System.dto.AccountResponseDto;
 import com.obs.Online_Banking_System.dto.TransactionRequestDto;
 import com.obs.Online_Banking_System.dto.TransactionResponseDto;
+import com.obs.Online_Banking_System.entity.Customer;
+import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.TransactionService;
 
@@ -34,6 +36,9 @@ public class TransactionController {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     @GetMapping("/account")
     public ResponseEntity<?> getAccount(HttpSession session) {
         String email = (String) session.getAttribute("email");
@@ -43,8 +48,14 @@ public class TransactionController {
             return ResponseEntity.status(401).body(err);
         }
 
-        AccountResponseDto acc = accountService.getmyAccount(email);
-        return ResponseEntity.ok(acc);
+        try {
+            AccountResponseDto acc = accountService.getmyAccount(email);
+            return ResponseEntity.ok(acc);
+        } catch (RuntimeException e) {
+            Map<String, Object> err = new HashMap<>();
+            err.put("error", e.getMessage());
+            return ResponseEntity.status(404).body(err);
+        }
     }
 
     @PostMapping("/transfer")
@@ -58,13 +69,16 @@ public class TransactionController {
             return ResponseEntity.status(401).body(err);
         }
 
-        // Derive the 6-digit transaction PIN from the last 6 digits of the Aadhar card
-        String adharStr = String.valueOf(adharcard);
-        String correctPin = adharStr.length() >= 6
-                ? adharStr.substring(adharStr.length() - 6)
-                : adharStr;
+        Customer cust = customerRepository.findByEmail(email).orElse(null);
+        if (cust == null) {
+            Map<String, Object> err = new HashMap<>();
+            err.put("error", "Customer not found");
+            return ResponseEntity.status(404).body(err);
+        }
 
-        if (request.getPin() == null || !correctPin.equals(request.getPin().trim())) {
+        String correctPin = cust.getPin();
+
+        if (request.getPin() == null || correctPin == null || !correctPin.equals(request.getPin().trim())) {
             Map<String, Object> err = new HashMap<>();
             err.put("error", "Invalid PIN. Please enter your 6-digit transaction PIN.");
             return ResponseEntity.status(401).body(err);

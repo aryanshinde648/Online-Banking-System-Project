@@ -1,6 +1,5 @@
 package com.obs.Online_Banking_System.service;
 
-
 import java.util.List;
 
 import com.obs.Online_Banking_System.dto.AccountCreateDto;
@@ -21,4 +20,8 @@ public interface AccountService {
     AccountResponseDto getmyAccount(String email);
 
     List<AccountDto> getAllAccounts();
+
+    AccountDto lockAccount(Long accountId);
+
+    AccountDto unlockAccount(Long accountId);
 }

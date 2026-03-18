@@ -183,3 +183,67 @@
 
     .nav-container { padding: 0 0.85rem; }
 }
+
+/* ============================================
+   Global Floating Toast Notifications
+   ============================================ */
+.toast-container {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    z-index: 1055;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none; /* Let clicks pass through container */
+}
+
+.custom-toast {
+    animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    min-width: 300px;
+    border-left: 4px solid transparent;
+    background-color: white;
+    padding: 16px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto; /* Re-enable clicks on the toast itself */
+}
+
+.custom-toast.error-toast {
+    border-left-color: #e74c3c;
+    color: #c0392b;
+}
+
+.custom-toast.success-toast {
+    border-left-color: #2ecc71;
+    color: #27ae60;
+}
+
+.custom-toast.info-toast {
+    border-left-color: #3498db;
+    color: #2980b9;
+}
+
+.custom-toast .message {
+    flex: 1;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.custom-toast.info-toast .message {
+    color: #2c3e50;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeOutRight {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+}
