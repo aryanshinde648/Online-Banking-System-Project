@@ -6,6 +6,7 @@ import com.obs.Online_Banking_System.repository.AdminRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -14,6 +15,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private AdminRepository adminRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private static final String ROOT_EMAIL = "admin@bank.com";
     private static final String ROOT_PASSWORD = "Avenger@1234";
@@ -25,7 +29,7 @@ public class DataInitializer implements CommandLineRunner {
             root.setFname("Super");
             root.setLname("Admin");
             root.setEmail(ROOT_EMAIL);
-            root.setPassword(ROOT_PASSWORD);
+            root.setPassword(passwordEncoder.encode(ROOT_PASSWORD));
             root.setPhone("9999999999");
             root.setAddress("Bank Headquarters");
             root.setDob("1990-01-01");

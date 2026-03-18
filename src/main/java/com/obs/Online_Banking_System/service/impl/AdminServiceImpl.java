@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.AdminDto;
@@ -28,6 +29,9 @@ public class AdminServiceImpl implements AdminService {
     @Autowired
     private AdminConversion adminConversion;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public ResponseEntity<String> registerAdministrative(AdminDto admin) {
 
@@ -42,6 +46,11 @@ public class AdminServiceImpl implements AdminService {
         }
 
         newAdmin.setAdminRole(AdminRole.ADMINISTRATIVE);
+
+        // Hash password before saving
+        if (newAdmin.getPassword() != null && !newAdmin.getPassword().isBlank()) {
+            newAdmin.setPassword(passwordEncoder.encode(newAdmin.getPassword()));
+        }
 
         Admin admin2 = adminRepository.save(newAdmin);
 
@@ -64,6 +73,11 @@ public class AdminServiceImpl implements AdminService {
         }
 
         newAdmin.setAdminRole(AdminRole.MANAGER);
+
+        // Hash password before saving
+        if (newAdmin.getPassword() != null && !newAdmin.getPassword().isBlank()) {
+            newAdmin.setPassword(passwordEncoder.encode(newAdmin.getPassword()));
+        }
 
         Admin admin2 = adminRepository.save(newAdmin);
 
@@ -90,7 +104,9 @@ public class AdminServiceImpl implements AdminService {
         existingAdmin.setFname(admin.getFname());
         existingAdmin.setLname(admin.getLname());
         existingAdmin.setEmail(admin.getEmail());
-        existingAdmin.setPassword(admin.getPassword());
+        if (admin.getPassword() != null && !admin.getPassword().isBlank()) {
+            existingAdmin.setPassword(passwordEncoder.encode(admin.getPassword()));
+        }
 
         adminRepository.save(existingAdmin);
 
@@ -111,11 +127,11 @@ public class AdminServiceImpl implements AdminService {
     public ResponseEntity<String> changePassword(Long id, String oldPassword, String newPassword) {
         Admin existingAdmin = adminRepository.findById(id).orElseThrow(() -> new RuntimeException("Admin not found"));
 
-        if (!existingAdmin.getPassword().equals(oldPassword)) {
+        if (!passwordEncoder.matches(oldPassword, existingAdmin.getPassword())) {
             return ResponseEntity.badRequest().body("Old password is incorrect");
         }
 
-        existingAdmin.setPassword(newPassword);
+        existingAdmin.setPassword(passwordEncoder.encode(newPassword));
         adminRepository.save(existingAdmin);
 
         return ResponseEntity.ok("Password changed successfully");
@@ -146,6 +162,11 @@ public class AdminServiceImpl implements AdminService {
 
         newAdmin.setAdminRole(admin.getAdminRole() != null ? admin.getAdminRole() : AdminRole.MANAGER);
 
+        // Hash password before saving
+        if (newAdmin.getPassword() != null && !newAdmin.getPassword().isBlank()) {
+            newAdmin.setPassword(passwordEncoder.encode(newAdmin.getPassword()));
+        }
+
         Admin saved = adminRepository.save(newAdmin);
 
         return adminConversion.toDto(saved);
@@ -156,7 +177,7 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = adminRepository.getByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Admin not found with email"));
 
-        if (!admin.getPassword().equals(pass)) {
+        if (!passwordEncoder.matches(pass, admin.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
 
@@ -175,7 +196,7 @@ public class AdminServiceImpl implements AdminService {
             return response;
         }
 
-        if (!admin.getPassword().equals(pass)) {
+        if (!passwordEncoder.matches(pass, admin.getPassword())) {
             response.put("error", "Invalid Email or Password");
             return response;
         }
@@ -209,9 +230,9 @@ public class AdminServiceImpl implements AdminService {
             existing.setDob(dto.getDob());
         if (dto.getAdminRole() != null)
             existing.setAdminRole(dto.getAdminRole());
-        // Only update password if explicitly provided
+        // Only update password if explicitly provided — hash it
         if (dto.getPassword() != null && !dto.getPassword().isBlank())
-            existing.setPassword(dto.getPassword());
+            existing.setPassword(passwordEncoder.encode(dto.getPassword()));
         return adminConversion.toDto(adminRepository.save(existing));
     }
 

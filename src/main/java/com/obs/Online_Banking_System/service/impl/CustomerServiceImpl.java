@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.dto.CustomerDto;
@@ -32,6 +33,9 @@ public class CustomerServiceImpl implements CustomerService {
     @Autowired
     OtpService otpService;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     @Override
     public Map<String, Object> registerCustomerMap(CustomerDto customerDto) {
         Map<String, Object> response = new HashMap<>();
@@ -50,6 +54,10 @@ public class CustomerServiceImpl implements CustomerService {
             return response;
         }
 
+        // Hash the password before saving
+        if (newCust.getPassword() != null && !newCust.getPassword().isBlank()) {
+            newCust.setPassword(passwordEncoder.encode(newCust.getPassword()));
+        }
         // Save with emailVerified = false
         newCust.setEmailVerified(false);
         customerRepository.save(newCust);
@@ -79,6 +87,10 @@ public class CustomerServiceImpl implements CustomerService {
             throw new RuntimeException("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
         }
 
+        // Hash the password before saving
+        if (newCust.getPassword() != null && !newCust.getPassword().isBlank()) {
+            newCust.setPassword(passwordEncoder.encode(newCust.getPassword()));
+        }
         customerRepository.save(newCust);
 
         return customerConversion.toCustomerDto(newCust);
@@ -121,7 +133,7 @@ public class CustomerServiceImpl implements CustomerService {
         if (customerDto.getAddress() != null)
             existingCustomer.setAddress(customerDto.getAddress());
         if (customerDto.getPassword() != null && !customerDto.getPassword().isBlank()) {
-            existingCustomer.setPassword(customerDto.getPassword());
+            existingCustomer.setPassword(passwordEncoder.encode(customerDto.getPassword()));
         }
 
         customerRepository.save(existingCustomer);
@@ -141,7 +153,9 @@ public class CustomerServiceImpl implements CustomerService {
         existingCustomer.setFname(customerDto.getFname());
         existingCustomer.setLname(customerDto.getLname());
         existingCustomer.setEmail(customerDto.getEmail());
-        existingCustomer.setPassword(customerDto.getPassword());
+        if (customerDto.getPassword() != null && !customerDto.getPassword().isBlank()) {
+            existingCustomer.setPassword(passwordEncoder.encode(customerDto.getPassword()));
+        }
         existingCustomer.setAddress(customerDto.getAddress());
         existingCustomer.setPhone(customerDto.getPhone());
 
@@ -165,11 +179,11 @@ public class CustomerServiceImpl implements CustomerService {
         Customer existingCustomer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        if (!existingCustomer.getPassword().equals(oldPassword)) {
+        if (!passwordEncoder.matches(oldPassword, existingCustomer.getPassword())) {
             return "Old password is incorrect";
         }
 
-        existingCustomer.setPassword(newPassword);
+        existingCustomer.setPassword(passwordEncoder.encode(newPassword));
         customerRepository.save(existingCustomer);
 
         return "Password changed successfully";
@@ -193,7 +207,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Customer Not Found with email id"));
 
-        if (!customer.getPassword().equals(pass)) {
+        if (!passwordEncoder.matches(pass, customer.getPassword())) {
             throw new RuntimeException("Invalid Email or Password");
         }
 
@@ -213,7 +227,7 @@ public class CustomerServiceImpl implements CustomerService {
             return response;
         }
 
-        if (!customer.getPassword().equals(pass)) {
+        if (!passwordEncoder.matches(pass, customer.getPassword())) {
             response.put("error", "Invalid Email or Password");
             response.put("status", AuthStatus.INVALID_CREDENTIALS);
             return response;
