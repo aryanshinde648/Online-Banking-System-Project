@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpSession;
 
 
 
+
 @Controller
 public class PageController {
 
@@ -19,7 +20,11 @@ public class PageController {
     public String home() {
         return "home";
     }
-    
+
+    @GetMapping("/null")
+    public String nullPageReturn() {
+        return "home";
+    }
 
     @GetMapping("/login-customer")
     public String loginCustomer(HttpSession session, HttpServletRequest request, Model model) {
