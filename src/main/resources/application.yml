@@ -23,7 +23,7 @@ spring:
   # ── SendGrid API ────────────────────────────────────────────────────────────
   sendgrid:
     api-key: ${SENDGRID_API_KEY}
-    from-email: ${MAIL_USERNAME:no-reply@sendgrid-verified-domain.com}
+    from-email: ${SENDGRID_FROM_EMAIL}
 
 server:
   port: 3030
