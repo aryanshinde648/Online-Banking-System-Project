@@ -1,48 +1,52 @@
 package com.obs.Online_Banking_System.service.impl;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.enumDto.OtpType;
 import com.obs.Online_Banking_System.service.EmailService;
 
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.Attachment;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
+    private final String fromEmail;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    public EmailServiceImpl(
+            @Value("${resend.api-key}") String apiKey,
+            @Value("${resend.from-email:onboarding@resend.dev}") String fromEmail) {
+        this.resend = new Resend(apiKey);
+        this.fromEmail = fromEmail;
+    }
 
     @Override
     public void sendOtpEmail(String toEmail, String otp, OtpType otpType) {
+        String subject = otpType == OtpType.EMAIL_VERIFICATION
+                ? "📧 Verify Your Email — Online Banking System"
+                : "🔐 Your Login OTP — Online Banking System";
+
+        String htmlBody = buildEmailHtml(otp, otpType);
+
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(fromEmail)
+                .to(toEmail)
+                .subject(subject)
+                .html(htmlBody)
+                .build();
+
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-
-            String subject = otpType == OtpType.EMAIL_VERIFICATION
-                    ? "📧 Verify Your Email — Online Banking System"
-                    : "🔐 Your Login OTP — Online Banking System";
-
-            helper.setSubject(subject);
-            helper.setText(buildEmailHtml(otp, otpType), true);
-
-            mailSender.send(message);
-            log.info("OTP email sent to {} for type {}", toEmail, otpType);
-
-        } catch (Exception e) {
+            CreateEmailResponse data = resend.emails().send(params);
+            log.info("OTP email sent to {} for type {}. Resend ID: {}", toEmail, otpType, data.getId());
+        } catch (ResendException e) {
             log.error("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
             throw new RuntimeException("Failed to send OTP email. Please try again.");
         }
@@ -154,22 +158,24 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendEmailWithAttachment(String toEmail, String subject, String body,
                                         byte[] pdfBytes, String fileName) {
+        
+        Attachment attachment = Attachment.builder()
+                .fileName(fileName)
+                .content(java.util.Base64.getEncoder().encodeToString(pdfBytes))
+                .build();
+
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(fromEmail)
+                .to(toEmail)
+                .subject(subject)
+                .html(buildStatementEmailHtml(body))
+                .attachments(attachment)
+                .build();
+
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(buildStatementEmailHtml(body), true);
-
-            // Attach the PDF bytes
-            helper.addAttachment(fileName, new ByteArrayResource(pdfBytes), "application/pdf");
-
-            mailSender.send(message);
-            log.info("Statement email with attachment sent to {}", toEmail);
-
-        } catch (Exception e) {
+            CreateEmailResponse data = resend.emails().send(params);
+            log.info("Statement email with attachment sent to {}. Resend ID: {}", toEmail, data.getId());
+        } catch (ResendException e) {
             log.error("Failed to send statement email to {}: {}", toEmail, e.getMessage());
             throw new RuntimeException("Failed to send statement email: " + e.getMessage());
         }
