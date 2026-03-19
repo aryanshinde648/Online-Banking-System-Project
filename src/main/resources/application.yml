@@ -20,9 +20,10 @@ spring:
             non_contextual_creation: true
     open-in-view: false
 
-  # ── Resend API ────────────────────────────────────────────────────────────
-  resend:
-    api-key: ${RESEND_API_KEY}
+  # ── SendGrid API ────────────────────────────────────────────────────────────
+  sendgrid:
+    api-key: ${SENDGRID_API_KEY}
+    from-email: ${MAIL_USERNAME:no-reply@sendgrid-verified-domain.com}
 
 server:
   port: 3030

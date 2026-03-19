@@ -116,11 +116,13 @@
     		<version>1.3.30</version>
 		</dependency>
 
-		<!-- Resend API SDK -->
+
+
+		<!-- SendGrind API SDK-->
 		<dependency>
-			<groupId>com.resend</groupId>
-			<artifactId>resend-java</artifactId>
-			<version>3.1.0</version>
+  			<groupId>com.sendgrid</groupId>
+  			<artifactId>sendgrid-java</artifactId>
+  			<version>4.9.3</version>
 		</dependency>
 
 		<!-- BCrypt password hashing (no full Spring Security required) -->
