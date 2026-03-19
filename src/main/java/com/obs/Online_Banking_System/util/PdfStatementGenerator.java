@@ -135,7 +135,7 @@ public class PdfStatementGenerator {
         Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, Font.NORMAL, BRAND_PURPLE);
         String rangeText = buildRangeText(from, to);
         Paragraph title = new Paragraph("ACCOUNT STATEMENT  —  " + rangeText, titleFont);
-        title.setSpacingBefore(2f);
+        title.setSpacingBefore(6f);
         title.setSpacingAfter(2f);
         doc.add(title);
 
