@@ -3,9 +3,9 @@ spring:
     name: Online-Banking-System
 
   datasource:
-    url: jdbc:postgresql://dpg-d6tnqjnfte5s73fun78g-a.oregon-postgres.render.com:5432/online_banking_mi2i?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
-    username: root
-    password: rfXwgy65hYDOZUU77MWrE30m27TsElLn
+    url: jdbc:postgresql://postgres.railway.internal:5432/railway
+    username: postgres
+    password: qNLrdNePGKxcVIHpgTuZaRPIHlmJHdEt
     driver-class-name: org.postgresql.Driver
 
   jpa:
