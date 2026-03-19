@@ -23,7 +23,7 @@ public class EmailServiceImpl implements EmailService {
 
     public EmailServiceImpl(
             @Value("${resend.api-key}") String apiKey,
-            @Value("${resend.from-email:onboarding@resend.dev}") String fromEmail) {
+            @Value("${resend.from-email:beautifulcake3002@gmail.com}") String fromEmail) {
         this.resend = new Resend(apiKey);
         this.fromEmail = fromEmail;
     }
