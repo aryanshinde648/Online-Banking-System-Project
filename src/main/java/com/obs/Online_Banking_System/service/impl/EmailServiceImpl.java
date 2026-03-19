@@ -6,19 +6,24 @@ import org.springframework.stereotype.Service;
 import com.obs.Online_Banking_System.enumDto.OtpType;
 import com.obs.Online_Banking_System.service.EmailService;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.Attachment;
-import com.resend.services.emails.model.CreateEmailOptions;
-import com.resend.services.emails.model.CreateEmailResponse;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Attachments;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
 
 @Slf4j
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    private final Resend resend;
+    private final SendGrid sendGrid;
     private final String fromEmail;
 
     public EmailServiceImpl(
@@ -36,19 +41,22 @@ public class EmailServiceImpl implements EmailService {
 
         String htmlBody = buildEmailHtml(otp, otpType);
 
-        CreateEmailOptions params = CreateEmailOptions.builder()
-                .from(fromEmail)
-                .to(toEmail)
-                .subject(subject)
-                .html(htmlBody)
-                .build();
+        Email from = new Email(this.fromEmail);
+        Email to = new Email(toEmail);
+        Content content = new Content("text/html", htmlBody);
+        Mail mail = new Mail(from, subject, to, content);
 
+        Request request = new Request();
         try {
-            CreateEmailResponse data = resend.emails().send(params);
-            log.info("OTP email sent to {} for type {}. Resend ID: {}", toEmail, otpType, data.getId());
-        } catch (ResendException e) {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+
+            Response response = sendGrid.api(request);
+            log.info("OTP email sent to {} for type {}. SendGrid Status: {}", toEmail, otpType, response.getStatusCode());
+        } catch (IOException e) {
             log.error("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
-            throw new RuntimeException("Failed to send OTP email. Please try again.");
+            throw new RuntimeException("Failed to send OTP email. Please try again.", e);
         }
     }
 
@@ -159,25 +167,29 @@ public class EmailServiceImpl implements EmailService {
     public void sendEmailWithAttachment(String toEmail, String subject, String body,
                                         byte[] pdfBytes, String fileName) {
         
-        Attachment attachment = Attachment.builder()
-                .fileName(fileName)
-                .content(java.util.Base64.getEncoder().encodeToString(pdfBytes))
-                .build();
+        Email from = new Email(this.fromEmail);
+        Email to = new Email(toEmail);
+        Content content = new Content("text/html", buildStatementEmailHtml(body));
+        Mail mail = new Mail(from, subject, to, content);
 
-        CreateEmailOptions params = CreateEmailOptions.builder()
-                .from(fromEmail)
-                .to(toEmail)
-                .subject(subject)
-                .html(buildStatementEmailHtml(body))
-                .attachments(attachment)
-                .build();
+        Attachments attachments = new Attachments();
+        attachments.setContent(java.util.Base64.getEncoder().encodeToString(pdfBytes));
+        attachments.setType("application/pdf");
+        attachments.setFilename(fileName);
+        attachments.setDisposition("attachment");
+        mail.addAttachments(attachments);
 
+        Request request = new Request();
         try {
-            CreateEmailResponse data = resend.emails().send(params);
-            log.info("Statement email with attachment sent to {}. Resend ID: {}", toEmail, data.getId());
-        } catch (ResendException e) {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+
+            Response response = sendGrid.api(request);
+            log.info("Statement email with attachment sent to {}. SendGrid Status: {}", toEmail, response.getStatusCode());
+        } catch (IOException e) {
             log.error("Failed to send statement email to {}: {}", toEmail, e.getMessage());
-            throw new RuntimeException("Failed to send statement email: " + e.getMessage());
+            throw new RuntimeException("Failed to send statement email: " + e.getMessage(), e);
         }
     }
 
