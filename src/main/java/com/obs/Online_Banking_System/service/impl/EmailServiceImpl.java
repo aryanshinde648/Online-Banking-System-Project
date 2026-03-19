@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import com.obs.Online_Banking_System.enumDto.OtpType;
 import com.obs.Online_Banking_System.service.EmailService;
-
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.Response;
@@ -14,9 +13,7 @@ import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Attachments;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
-
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 
 @Slf4j
