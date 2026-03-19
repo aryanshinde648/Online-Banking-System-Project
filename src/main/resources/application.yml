@@ -20,25 +20,9 @@ spring:
             non_contextual_creation: true
     open-in-view: false
 
-  # ── Email / SMTP ────────────────────────────────────────────────────────────
-  # To generate a Gmail App Password:
-  #   1. Enable 2-Step Verification on your Google account
-  #   2. Go to https://myaccount.google.com/apppasswords
-  #   3. Generate a new App Password  → paste the 16-char password below
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}  # ← replace with your Gmail address
-    password: ${MAIL_PASSWORD}  # ← replace with your 16-char App Password   
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-        transport:
-          protocol: smtp
+  # ── Resend API ────────────────────────────────────────────────────────────
+  resend:
+    api-key: ${RESEND_API_KEY}
 
 server:
   port: 3030
