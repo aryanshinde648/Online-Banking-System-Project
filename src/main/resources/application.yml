@@ -3,9 +3,9 @@ spring:
     name: Online-Banking-System
 
   datasource:
-    url: jdbc:postgresql://dpg-d6tnqjnfte5s73fun78g-a.oregon-postgres.render.com:5432/online_banking_mi2i?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
-    username: root
-    password: rfXwgy65hYDOZUU77MWrE30m27TsElLn
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -14,10 +14,10 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        '[format_sql]': false
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
-          '[batch_size]': 20
+          lob:
+            non_contextual_creation: true
     open-in-view: false
 
   # ── Email / SMTP ────────────────────────────────────────────────────────────
@@ -28,8 +28,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: beautifulcake3002@gmail.com       # ← replace with your Gmail address
-    password: govv drlb oivk yuma     # ← replace with your 16-char App Password
+    username: ${MAIL_USERNAME}  # ← replace with your Gmail address
+    password: ${MAIL_PASSWORD}  # ← replace with your 16-char App Password   
     properties:
       mail:
         smtp:
