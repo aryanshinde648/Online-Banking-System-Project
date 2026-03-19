@@ -29,6 +29,7 @@ public class EmailServiceImpl implements EmailService {
     public EmailServiceImpl(
             @Value("${sendgrid.api-key}") String apiKey,
             @Value("${sendgrid.from-email:no-reply@example.com}") String fromEmail) {
+              
         this.sendGrid = new SendGrid(apiKey);
         this.fromEmail = fromEmail;
     }
