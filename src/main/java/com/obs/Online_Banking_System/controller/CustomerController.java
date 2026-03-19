@@ -102,7 +102,7 @@ public class CustomerController {
     // ── Registration ──────────────────────────────────────────────────────────
 
     @PostMapping("/register-customer")
-    public String registerCustomer(Model model, @ModelAttribute("customer") CustomerDto customerDto) {
+    public String registerCustomer(Model model, @ModelAttribute("customer") CustomerDto customerDto, HttpSession session) {
         Map<String, Object> response = customerService.registerCustomerMap(customerDto);
 
         if (response.containsKey("adhar-error")) {
@@ -115,6 +115,9 @@ public class CustomerController {
             model.addAttribute("customer", new CustomerDto());
             return "register-customer";
         }
+
+        // Add to session to save after email verification
+        session.setAttribute("pendingRegistration", customerDto);
 
         // Redirect to email verification page
         String email = (String) response.get("email");
@@ -189,6 +192,7 @@ public class CustomerController {
             @RequestParam String email,
             @RequestParam String otp,
             Model model,
+            HttpSession session,
             RedirectAttributes redirectAttributes) {
 
         OtpVerificationResult result = customerService.verifyEmailOtp(email, otp);
@@ -196,6 +200,12 @@ public class CustomerController {
 
         switch (result) {
             case SUCCESS -> {
+                CustomerDto pendingDto = (CustomerDto) session.getAttribute("pendingRegistration");
+                if (pendingDto != null && pendingDto.getEmail().equals(email)) {
+                    customerService.registerVerifiedCustomer(pendingDto);
+                    session.removeAttribute("pendingRegistration");
+                }
+
                 redirectAttributes.addFlashAttribute("success",
                         "✅ Email verified successfully! Please log in.");
                 return "redirect:/login-customer";

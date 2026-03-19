@@ -11,6 +11,8 @@ public interface CustomerService {
 
     public CustomerDto registerCustomer(CustomerDto customerDto);
 
+    public CustomerDto registerVerifiedCustomer(CustomerDto customerDto);
+
     public CustomerDto getCustomerById(Long id);
 
     public CustomerDto getCustomerByEmail(String email);

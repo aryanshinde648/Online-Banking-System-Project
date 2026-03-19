@@ -54,14 +54,12 @@ public class CustomerServiceImpl implements CustomerService {
             return response;
         }
 
-        // Hash the password before saving
+        // Hash the password before saving (optional here, but done just in case we return customer)
         if (newCust.getPassword() != null && !newCust.getPassword().isBlank()) {
             newCust.setPassword(passwordEncoder.encode(newCust.getPassword()));
         }
-        // Save with emailVerified = false
-        newCust.setEmailVerified(false);
-        customerRepository.save(newCust);
-        log.info("New customer registered: {} — awaiting email verification", newCust.getEmail());
+        
+        log.info("New customer registration initiated: {} — awaiting email verification", newCust.getEmail());
 
         // Generate and send EMAIL_VERIFICATION OTP
         try {
@@ -91,6 +89,25 @@ public class CustomerServiceImpl implements CustomerService {
         if (newCust.getPassword() != null && !newCust.getPassword().isBlank()) {
             newCust.setPassword(passwordEncoder.encode(newCust.getPassword()));
         }
+        customerRepository.save(newCust);
+
+        return customerConversion.toCustomerDto(newCust);
+    }
+
+    @Override
+    public CustomerDto registerVerifiedCustomer(CustomerDto customerDto) {
+
+        Customer newCust = customerConversion.toCustomerEntity(customerDto);
+
+        if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
+            throw new RuntimeException("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
+        }
+
+        // Hash the password before saving
+        if (newCust.getPassword() != null && !newCust.getPassword().isBlank()) {
+            newCust.setPassword(passwordEncoder.encode(newCust.getPassword()));
+        }
+        newCust.setEmailVerified(true);
         customerRepository.save(newCust);
 
         return customerConversion.toCustomerDto(newCust);
