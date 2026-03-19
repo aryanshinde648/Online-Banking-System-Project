@@ -27,9 +27,9 @@ public class EmailServiceImpl implements EmailService {
     private final String fromEmail;
 
     public EmailServiceImpl(
-            @Value("${resend.api-key}") String apiKey,
-            @Value("${resend.from-email:beautifulcake3002@gmail.com}") String fromEmail) {
-        this.resend = new Resend(apiKey);
+            @Value("${sendgrid.api-key}") String apiKey,
+            @Value("${sendgrid.from-email:no-reply@example.com}") String fromEmail) {
+        this.sendGrid = new SendGrid(apiKey);
         this.fromEmail = fromEmail;
     }
 
