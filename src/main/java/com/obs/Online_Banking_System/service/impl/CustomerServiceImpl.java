@@ -303,7 +303,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         // Password valid + email verified — choose 2FA method
-        if (customer.is2faEnabled()) {
+        if (Boolean.TRUE.equals(customer.getIs2faEnabled())) {
             // Customer uses Google Authenticator — do NOT send Email OTP
             log.info("Authenticator 2FA required for login: {}", email);
             response.put("status", AuthStatus.AUTHENTICATOR_OTP_REQUIRED);
@@ -428,7 +428,7 @@ public class CustomerServiceImpl implements CustomerService {
             return response;
         }
 
-        customer.set2faEnabled(true);
+        customer.setIs2faEnabled(true);
         customerRepository.save(customer);
         log.info("Authenticator 2FA enabled for customer id={}", customerId);
 
@@ -444,7 +444,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        if (customer.getSecretKey() == null || !customer.is2faEnabled()) {
+        if (customer.getSecretKey() == null || !Boolean.TRUE.equals(customer.getIs2faEnabled())) {
             response.put("error", "Authenticator 2FA is not set up for this account.");
             return response;
         }
