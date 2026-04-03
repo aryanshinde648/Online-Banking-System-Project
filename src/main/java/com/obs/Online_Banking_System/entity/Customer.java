@@ -56,7 +56,7 @@ public class Customer {
     @Column(name = "totp_secret_key")
     private String secretKey;
 
-    @Column(name = "is_2fa_enabled", nullable = false)
-    private boolean is2faEnabled = false;
+    @Column(name = "is_2fa_enabled")
+    private Boolean is2faEnabled = false;
 }
 
