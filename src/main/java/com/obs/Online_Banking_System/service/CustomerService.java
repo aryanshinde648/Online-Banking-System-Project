@@ -49,4 +49,21 @@ public interface CustomerService {
      */
     java.util.Map<String, Object> verifyLoginOtp(String email, String otp);
 
+    /**
+     * Generates a TOTP secret for the customer, saves it (without enabling 2FA yet),
+     * and returns the otpauth QR URL and a confirmation message.
+     * secretKey is NEVER returned to the caller.
+     */
+    java.util.Map<String, Object> enableAuthenticator(Long customerId);
+
+    /**
+     * Verifies the TOTP OTP during setup. On success marks is2faEnabled=true.
+     */
+    java.util.Map<String, Object> verifyAuthenticatorSetup(Long customerId, int otp);
+
+    /**
+     * Verifies the TOTP OTP during login. On success returns CustomerDto for session creation.
+     */
+    java.util.Map<String, Object> verifyAuthenticatorLogin(Long customerId, int otp);
+
 }

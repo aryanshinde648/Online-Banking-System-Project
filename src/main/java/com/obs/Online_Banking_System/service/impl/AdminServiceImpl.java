@@ -37,6 +37,18 @@ public class AdminServiceImpl implements AdminService {
 
         Admin newAdmin = adminConversion.toEntity(admin);
 
+        if (admin.getDob() != null && !admin.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(admin.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    return ResponseEntity.badRequest().body("Age must be greater than 18 to register an Admin");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                return ResponseEntity.badRequest().body("Invalid Date of Birth format");
+            }
+        }
+
         if (adminRepository.findByEmail(newAdmin.getEmail()) != null) {
             return ResponseEntity.badRequest().body("Admin with email " + newAdmin.getEmail() + " already exists");
         }
@@ -63,6 +75,18 @@ public class AdminServiceImpl implements AdminService {
     public ResponseEntity<String> registerAdmin(AdminDto admin) {
 
         Admin newAdmin = adminConversion.toEntity(admin);
+
+        if (admin.getDob() != null && !admin.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(admin.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    return ResponseEntity.badRequest().body("Age must be greater than 18 to register an Admin");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                return ResponseEntity.badRequest().body("Invalid Date of Birth format");
+            }
+        }
 
         if (adminRepository.findByEmail(newAdmin.getEmail()) != null) {
             return ResponseEntity.badRequest().body("Admin with email " + newAdmin.getEmail() + " already exists");
@@ -152,6 +176,18 @@ public class AdminServiceImpl implements AdminService {
     public AdminDto register(AdminDto admin) {
 
         Admin newAdmin = adminConversion.toEntity(admin);
+
+        if (admin.getDob() != null && !admin.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(admin.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    throw new RuntimeException("Age must be greater than 18 to register an Admin");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new RuntimeException("Invalid Date of Birth format");
+            }
+        }
 
         if (adminRepository.findByEmail(newAdmin.getEmail()) != null) {
             throw new RuntimeException("Admin with email " + newAdmin.getEmail() + " already exists");

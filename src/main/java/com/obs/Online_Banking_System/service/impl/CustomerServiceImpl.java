@@ -17,6 +17,7 @@ import com.obs.Online_Banking_System.mapper.CustomerConversion;
 import com.obs.Online_Banking_System.repository.CustomerRepository;
 import com.obs.Online_Banking_System.service.CustomerService;
 import com.obs.Online_Banking_System.service.OtpService;
+import com.obs.Online_Banking_System.service.TwoFactorService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,6 +35,9 @@ public class CustomerServiceImpl implements CustomerService {
     OtpService otpService;
 
     @Autowired
+    TwoFactorService twoFactorService;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
     @Override
@@ -41,6 +45,21 @@ public class CustomerServiceImpl implements CustomerService {
         Map<String, Object> response = new HashMap<>();
 
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
+
+        if (customerDto.getDob() != null && !customerDto.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(customerDto.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    response.put("dob-error", "Age must be greater than 18 to register");
+                    log.warn("Customer registration failed: Age is not greater than 18");
+                    return response;
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                response.put("dob-error", "Invalid Date of Birth format");
+                return response;
+            }
+        }
 
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             response.put("adhar-error", "Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
@@ -81,6 +100,18 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
 
+        if (customerDto.getDob() != null && !customerDto.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(customerDto.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    throw new RuntimeException("Age must be greater than 18 to register");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new RuntimeException("Invalid Date of Birth format");
+            }
+        }
+
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             throw new RuntimeException("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
         }
@@ -98,6 +129,18 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDto registerVerifiedCustomer(CustomerDto customerDto) {
 
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
+
+        if (customerDto.getDob() != null && !customerDto.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(customerDto.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    throw new RuntimeException("Age must be greater than 18 to register");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new RuntimeException("Invalid Date of Birth format");
+            }
+        }
 
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             throw new RuntimeException("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
@@ -259,7 +302,16 @@ public class CustomerServiceImpl implements CustomerService {
             return response;
         }
 
-        // Password valid + email verified — trigger 2FA OTP
+        // Password valid + email verified — choose 2FA method
+        if (customer.is2faEnabled()) {
+            // Customer uses Google Authenticator — do NOT send Email OTP
+            log.info("Authenticator 2FA required for login: {}", email);
+            response.put("status", AuthStatus.AUTHENTICATOR_OTP_REQUIRED);
+            response.put("customerId", customer.getId());
+            return response;
+        }
+
+        // Existing Email OTP flow (unchanged)
         try {
             otpService.generateAndSendOtp(email, OtpType.LOGIN_2FA);
         } catch (Exception e) {
@@ -332,6 +384,80 @@ public class CustomerServiceImpl implements CustomerService {
                 log.info("Login 2FA OTP verified for: {}", email);
             }
         }
+        return response;
+    }
+
+    // ── Authenticator 2FA Methods ─────────────────────────────────────────────
+
+    @Override
+    public Map<String, Object> enableAuthenticator(Long customerId) {
+        Map<String, Object> response = new HashMap<>();
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        String secret = twoFactorService.generateSecret();
+        customer.setSecretKey(secret);
+        // is2faEnabled stays false until the user verifies the OTP
+        customerRepository.save(customer);
+
+        String qrUrl = twoFactorService.getQRBarcodeURL(customer.getEmail(), secret);
+        log.info("TOTP secret generated for customer id={}", customerId);
+
+        // secretKey is NOT returned — only the QR URL
+        response.put("qrUrl", qrUrl);
+        response.put("message", "Scan the QR code using your Authenticator app, then verify below.");
+        return response;
+    }
+
+    @Override
+    public Map<String, Object> verifyAuthenticatorSetup(Long customerId, int otp) {
+        Map<String, Object> response = new HashMap<>();
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        if (customer.getSecretKey() == null) {
+            response.put("error", "No authenticator secret found. Please generate a QR code first.");
+            return response;
+        }
+
+        if (!twoFactorService.verifyOTP(customer.getSecretKey(), otp)) {
+            log.warn("TOTP setup verification failed for customer id={}", customerId);
+            response.put("error", "Invalid OTP. Please try again.");
+            return response;
+        }
+
+        customer.set2faEnabled(true);
+        customerRepository.save(customer);
+        log.info("Authenticator 2FA enabled for customer id={}", customerId);
+
+        response.put("success", true);
+        response.put("message", "Google Authenticator has been enabled for your account!");
+        return response;
+    }
+
+    @Override
+    public Map<String, Object> verifyAuthenticatorLogin(Long customerId, int otp) {
+        Map<String, Object> response = new HashMap<>();
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        if (customer.getSecretKey() == null || !customer.is2faEnabled()) {
+            response.put("error", "Authenticator 2FA is not set up for this account.");
+            return response;
+        }
+
+        if (!twoFactorService.verifyOTP(customer.getSecretKey(), otp)) {
+            log.warn("TOTP login verification failed for customer id={}", customerId);
+            response.put("error", "Invalid OTP. Please try again.");
+            return response;
+        }
+
+        log.info("Authenticator 2FA login verified for customer id={}", customerId);
+        response.put("success", true);
+        response.put("customer", customerConversion.toCustomerDto(customer));
         return response;
     }
 

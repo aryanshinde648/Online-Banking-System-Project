@@ -38,5 +38,7 @@ public class CustomerDto {
 
     private boolean emailVerified;
 
+    private boolean is2faEnabled;
+
 }
 

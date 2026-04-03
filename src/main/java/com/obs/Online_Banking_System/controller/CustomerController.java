@@ -26,10 +26,12 @@ import com.obs.Online_Banking_System.enumDto.OtpVerificationResult;
 import com.obs.Online_Banking_System.service.AccountService;
 import com.obs.Online_Banking_System.service.CustomerService;
 import com.obs.Online_Banking_System.service.OtpService;
+import com.obs.Online_Banking_System.service.TwoFactorService;
 import com.obs.Online_Banking_System.service.impl.CustomerServiceImpl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -45,6 +47,12 @@ public class CustomerController {
 
     @Autowired
     private OtpService otpService;
+
+    @Autowired
+    private TwoFactorService twoFactorService;
+
+    /** Max failed TOTP login attempts before temp session is cleared */
+    private static final int MAX_TOTP_LOGIN_ATTEMPTS = 5;
 
     // ── Account ───────────────────────────────────────────────────────────────
 
@@ -115,6 +123,11 @@ public class CustomerController {
             model.addAttribute("customer", new CustomerDto());
             return "register-customer";
         }
+        if (response.containsKey("dob-error")) {
+            model.addAttribute("error", response.get("dob-error").toString());
+            model.addAttribute("customer", new CustomerDto());
+            return "register-customer";
+        }
 
         // Add to session to save after email verification
         session.setAttribute("pendingRegistration", customerDto);
@@ -162,6 +175,15 @@ public class CustomerController {
                 otpService.generateAndSendOtp(email, OtpType.EMAIL_VERIFICATION);
             } catch (Exception ignored) { /* already handled in service */ }
             return "verify-email";
+        }
+
+        if (status == AuthStatus.AUTHENTICATOR_OTP_REQUIRED) {
+            // Store customerId temporarily in session for TOTP login verification
+            Long customerId = (Long) response.get("customerId");
+            HttpSession session = request.getSession(true);
+            session.setAttribute("tempCustomerId", customerId);
+            session.setAttribute("totpAttempts", 0);
+            return "redirect:/customer/authenticator-login";
         }
 
         if (status == AuthStatus.OTP_REQUIRED) {
@@ -420,5 +442,167 @@ public class CustomerController {
         result.put("success", true);
         result.put("message", msg);
         return ResponseEntity.ok(result);
+    }
+
+    // ── Authenticator 2FA Setup ─────────────────────────────────────────────
+
+    /** GET /customer/authenticator-setup — Show the TOTP setup page */
+    @GetMapping("/authenticator-setup")
+    public String showAuthenticatorSetup(HttpSession session, RedirectAttributes redirectAttributes) {
+        CustomerDto cust = (CustomerDto) session.getAttribute("loggedInCustomer");
+        if (cust == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please login first.");
+            return "redirect:/login-customer";
+        }
+        return "authenticator-setup";
+    }
+
+    /**
+     * POST /customer/enable-authenticator
+     * Generates a TOTP secret, saves it, and returns the QR URL + PNG image.
+     * Returns { qrUrl, message } — secretKey is NEVER exposed.
+     */
+    @PostMapping("/enable-authenticator")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> enableAuthenticator(HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        CustomerDto cust = (CustomerDto) session.getAttribute("loggedInCustomer");
+        if (cust == null) {
+            result.put("error", "Not logged in.");
+            return ResponseEntity.status(401).body(result);
+        }
+        try {
+            Map<String, Object> svcResult = customerService.enableAuthenticator(cust.getCustomerId());
+            return ResponseEntity.ok(svcResult);
+        } catch (Exception e) {
+            result.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    /**
+     * GET /customer/api/qr-code — Returns the QR code image as PNG (base64 is handled client-side).
+     * The secret is fetched from DB; never from session or DTO.
+     */
+    @GetMapping(value = "/api/qr-code", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getQRCodeImage(
+            @org.springframework.web.bind.annotation.RequestParam String qrUrl) {
+        try {
+            byte[] image = twoFactorService.generateQRCodeImage(qrUrl, 250, 250);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(image);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * POST /customer/verify-authenticator
+     * Verifies the OTP from the setup flow and enables 2FA on the account.
+     */
+    @PostMapping("/verify-authenticator")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> verifyAuthenticator(
+            @RequestBody Map<String, String> body,
+            HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        CustomerDto cust = (CustomerDto) session.getAttribute("loggedInCustomer");
+        if (cust == null) {
+            result.put("error", "Not logged in.");
+            return ResponseEntity.status(401).body(result);
+        }
+        String otpStr = body.get("otp");
+        if (otpStr == null || otpStr.isBlank()) {
+            result.put("error", "OTP is required.");
+            return ResponseEntity.badRequest().body(result);
+        }
+        int otp;
+        try {
+            otp = Integer.parseInt(otpStr.trim());
+        } catch (NumberFormatException e) {
+            result.put("error", "OTP must be a 6-digit number.");
+            return ResponseEntity.badRequest().body(result);
+        }
+        Map<String, Object> svcResult = customerService.verifyAuthenticatorSetup(cust.getCustomerId(), otp);
+        if (svcResult.containsKey("success")) {
+            // Update session to reflect is2faEnabled = true
+            CustomerDto updatedCust = customerService.getCustomerById(cust.getCustomerId());
+            session.setAttribute("loggedInCustomer", updatedCust);
+            return ResponseEntity.ok(svcResult);
+        }
+        return ResponseEntity.badRequest().body(svcResult);
+    }
+
+    // ── Authenticator 2FA Login ──────────────────────────────────────────────
+
+    /** GET /customer/authenticator-login — Show TOTP verification page during login */
+    @GetMapping("/authenticator-login")
+    public String showAuthenticatorLogin(HttpSession session, RedirectAttributes redirectAttributes) {
+        Long tempId = (Long) session.getAttribute("tempCustomerId");
+        if (tempId == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Session expired. Please log in again.");
+            return "redirect:/login-customer";
+        }
+        return "authenticator-login";
+    }
+
+    /**
+     * POST /customer/verify-authenticator-login
+     * Verifies TOTP during login. On success: creates full session.
+     * On failure: tracks attempts; clears tempCustomerId after MAX_TOTP_LOGIN_ATTEMPTS.
+     */
+    @PostMapping("/verify-authenticator-login")
+    public String verifyAuthenticatorLogin(
+            @RequestParam String otp,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        Long customerId = (Long) session.getAttribute("tempCustomerId");
+        if (customerId == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Session expired. Please log in again.");
+            return "redirect:/login-customer";
+        }
+
+        int otpInt;
+        try {
+            otpInt = Integer.parseInt(otp.trim());
+        } catch (NumberFormatException e) {
+            model.addAttribute("error", "OTP must be a 6-digit number.");
+            return "authenticator-login";
+        }
+
+        Map<String, Object> result = customerService.verifyAuthenticatorLogin(customerId, otpInt);
+
+        if (result.containsKey("success")) {
+            // Build full session and clear temp state
+            CustomerDto customerDto = (CustomerDto) result.get("customer");
+            session.setAttribute("loggedInCustomer", customerDto);
+            session.setAttribute("customerId", customerDto.getCustomerId());
+            session.setAttribute("email", customerDto.getEmail());
+            session.setAttribute("adharcard", customerDto.getAdharcard());
+            session.removeAttribute("tempCustomerId");
+            session.removeAttribute("totpAttempts");
+            return "redirect:/customer/dashboard-customer";
+        }
+
+        // Track failed attempts
+        Integer attempts = (Integer) session.getAttribute("totpAttempts");
+        if (attempts == null) attempts = 0;
+        attempts++;
+        session.setAttribute("totpAttempts", attempts);
+
+        if (attempts >= MAX_TOTP_LOGIN_ATTEMPTS) {
+            session.removeAttribute("tempCustomerId");
+            session.removeAttribute("totpAttempts");
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Too many failed attempts. Please log in again.");
+            return "redirect:/login-customer";
+        }
+
+        model.addAttribute("error", result.get("error"));
+        model.addAttribute("attemptsLeft", MAX_TOTP_LOGIN_ATTEMPTS - attempts);
+        return "authenticator-login";
     }
 }
