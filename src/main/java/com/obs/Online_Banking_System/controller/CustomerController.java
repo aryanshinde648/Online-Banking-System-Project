@@ -374,18 +374,21 @@ public class CustomerController {
     @GetMapping({ "/profile", "/profile-customer" })
     public String showProfile(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
 
-        CustomerDto customerDto = (CustomerDto) session.getAttribute("loggedInCustomer");
+        CustomerDto sessionDto = (CustomerDto) session.getAttribute("loggedInCustomer");
 
-        if (customerDto != null) {
-            Object logged = session.getAttribute("loggedInCustomer");
-            model.addAttribute("loggedInCustomer", logged);
-            model.addAttribute("customerId", session.getAttribute("customerId"));
-            model.addAttribute("customer", new CustomerDto());
-            return "profile-customer";
-        } else {
+        if (sessionDto == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please login to access the dashboard");
             return "redirect:/login-customer";
         }
+
+        // Always fetch fresh data from DB so fields like is2faEnabled are never stale
+        CustomerDto freshDto = customerService.getCustomerById(sessionDto.getCustomerId());
+        session.setAttribute("loggedInCustomer", freshDto); // keep session in sync
+
+        model.addAttribute("loggedInCustomer", freshDto);
+        model.addAttribute("customerId", freshDto.getCustomerId());
+        model.addAttribute("customer", new CustomerDto());
+        return "profile-customer";
     }
 
     // ── Password & PIN ────────────────────────────────────────────────────────
