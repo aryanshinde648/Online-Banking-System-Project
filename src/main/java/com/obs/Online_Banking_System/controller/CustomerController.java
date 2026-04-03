@@ -115,6 +115,11 @@ public class CustomerController {
             model.addAttribute("customer", new CustomerDto());
             return "register-customer";
         }
+        if (response.containsKey("dob-error")) {
+            model.addAttribute("error", response.get("dob-error").toString());
+            model.addAttribute("customer", new CustomerDto());
+            return "register-customer";
+        }
 
         // Add to session to save after email verification
         session.setAttribute("pendingRegistration", customerDto);

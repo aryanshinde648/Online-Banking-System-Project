@@ -42,6 +42,21 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
 
+        if (customerDto.getDob() != null && !customerDto.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(customerDto.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    response.put("dob-error", "Age must be greater than 18 to register");
+                    log.warn("Customer registration failed: Age is not greater than 18");
+                    return response;
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                response.put("dob-error", "Invalid Date of Birth format");
+                return response;
+            }
+        }
+
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             response.put("adhar-error", "Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
             log.warn("Customer with Adharcard No. {} already exists", newCust.getAdharcard());
@@ -81,6 +96,18 @@ public class CustomerServiceImpl implements CustomerService {
 
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
 
+        if (customerDto.getDob() != null && !customerDto.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(customerDto.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    throw new RuntimeException("Age must be greater than 18 to register");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new RuntimeException("Invalid Date of Birth format");
+            }
+        }
+
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             throw new RuntimeException("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
         }
@@ -98,6 +125,18 @@ public class CustomerServiceImpl implements CustomerService {
     public CustomerDto registerVerifiedCustomer(CustomerDto customerDto) {
 
         Customer newCust = customerConversion.toCustomerEntity(customerDto);
+
+        if (customerDto.getDob() != null && !customerDto.getDob().isBlank()) {
+            try {
+                java.time.LocalDate dob = java.time.LocalDate.parse(customerDto.getDob());
+                int age = java.time.Period.between(dob, java.time.LocalDate.now()).getYears();
+                if (age <= 18) {
+                    throw new RuntimeException("Age must be greater than 18 to register");
+                }
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new RuntimeException("Invalid Date of Birth format");
+            }
+        }
 
         if (customerRepository.findByAdharcard(customerDto.getAdharcard()).isPresent()) {
             throw new RuntimeException("Customer with Adharcard No. " + newCust.getAdharcard() + " already exists");
