@@ -52,5 +52,11 @@ public class Customer {
 
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
+
+    @Column(name = "totp_secret_key")
+    private String secretKey;
+
+    @Column(name = "is_2fa_enabled", nullable = false)
+    private boolean is2faEnabled = false;
 }
 
