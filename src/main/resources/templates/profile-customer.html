@@ -596,12 +596,12 @@
                                         <i class="fas fa-mobile-screen-button me-2" style="color:#2563eb;"></i>Google Authenticator (2FA)
                                     </h6>
                                     <!-- Status: already enabled -->
-                                    <div th:if="${loggedInCustomer?.is2faEnabled}"
+                                    <div th:if="${loggedInCustomer?.twoFaEnabled}"
                                          style="display:inline-flex; align-items:center; gap:6px; background:#f0fdf4; border:1.5px solid #22c55e; border-radius:20px; padding:4px 12px; font-size:0.8rem; font-weight:600; color:#15803d;">
                                         <i class="fas fa-shield-check"></i> Authenticator Enabled
                                     </div>
                                     <!-- Status: not yet set up -->
-                                    <div th:unless="${loggedInCustomer?.is2faEnabled}"
+                                    <div th:unless="${loggedInCustomer?.twoFaEnabled}"
                                          style="display:inline-flex; align-items:center; gap:6px; background:#fef9c3; border:1.5px solid #facc15; border-radius:20px; padding:4px 12px; font-size:0.8rem; font-weight:600; color:#854d0e;">
                                         <i class="fas fa-triangle-exclamation"></i> Not Enabled
                                     </div>
@@ -611,14 +611,14 @@
                                 </div>
                                 <div>
                                     <!-- Already enabled: show Manage button -->
-                                    <a th:if="${loggedInCustomer?.is2faEnabled}"
+                                    <a th:if="${loggedInCustomer?.twoFaEnabled}"
                                        href="/customer/authenticator-setup"
                                        style="display:inline-flex; align-items:center; gap:7px; background:transparent; border:2px solid #2563eb; color:#2563eb; border-radius:8px; padding:8px 18px; font-size:0.88rem; font-weight:600; text-decoration:none; transition:all 0.2s;"
                                        onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
                                         <i class="fas fa-sliders"></i> Manage 2FA
                                     </a>
                                     <!-- Not enabled: show Set Up button -->
-                                    <a th:unless="${loggedInCustomer?.is2faEnabled}"
+                                    <a th:unless="${loggedInCustomer?.twoFaEnabled}"
                                        href="/customer/authenticator-setup"
                                        style="display:inline-flex; align-items:center; gap:7px; background:linear-gradient(90deg,#1e3a5f,#2563eb); color:white; border:none; border-radius:8px; padding:9px 20px; font-size:0.88rem; font-weight:600; text-decoration:none; transition:all 0.2s; box-shadow:0 4px 12px rgba(37,99,235,0.25);"
                                        onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">

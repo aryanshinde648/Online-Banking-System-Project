@@ -12,9 +12,11 @@ import com.obs.Online_Banking_System.entity.Customer;
 public interface CustomerConversion {
     
     @Mapping(source = "customerId", target = "id")
+    @Mapping(source = "twoFaEnabled", target = "is2faEnabled")
     Customer toCustomerEntity(CustomerDto customerDto);
 
     @Mapping(source = "id", target = "customerId")
+    @Mapping(source = "is2faEnabled", target = "twoFaEnabled")
     CustomerDto toCustomerDto(Customer customer);
 
     List<CustomerDto> toCustomerDtoList(List<Customer> customers);
